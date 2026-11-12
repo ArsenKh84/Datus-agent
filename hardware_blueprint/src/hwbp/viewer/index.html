@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hardware Blueprint Viewer</title>
+<style>
+:root{--bg:#f6f6f4;--surface:#ffffff;--text:#151515;--muted:#6b6d6c;--line:#e2e3e1;--accent:#2f6fed;--ok:#2f8f4e;--warn:#b7791f;--err:#c53030;
+--mcu:#047878;--sensor:#347199;--actuator:#b2522f;--power:#7b6527;--module:#7253ad;--display:#995e71;--structural:#436b98;--enclosure:#74619d;--mechanism:#8b6137;--misc:#776946;--printed:#69743a;--other:#6e6f6f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff;
+--mcu:#06abab;--sensor:#418dbf;--actuator:#df663b;--power:#f5c94e;--module:#957ec2;--display:#db87a1;--structural:#6fb2fd;--enclosure:#a58be0;--mechanism:#e8a25b;--misc:#b7a26b;--printed:#bfd36a;--other:#9d9f9e}}
+:root[data-theme="dark"]{--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff;--mcu:#06abab;--sensor:#418dbf;--actuator:#df663b;--power:#f5c94e;--module:#957ec2;--display:#db87a1;--structural:#6fb2fd;--enclosure:#a58be0;--mechanism:#e8a25b;--misc:#b7a26b;--printed:#bfd36a;--other:#9d9f9e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5}
+h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.02em}nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{border:1px solid transparent;background:none;color:var(--muted);padding:6px 12px;border-radius:8px;font:600 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;min-height:32px}
+nav button[aria-selected="true"]{background:var(--text);color:var(--bg)}nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{max-width:1200px;margin:0 auto;padding:16px}section[hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tag{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.muted{color:var(--muted)}.small{font-size:12px}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;border:1px solid currentColor}
+.sev-error{color:var(--err)}.sev-warning{color:var(--warn)}.sev-info{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.kpi b{display:block;font-size:22px}
+.scroll{overflow:auto;-webkit-overflow-scrolling:touch}#wiring svg{display:block;max-width:none}
+#mechwrap{position:relative;height:520px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}#mech{width:100%;height:100%;display:block;touch-action:none}
+#mechinfo{position:absolute;left:12px;top:12px;font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.tree div{padding:2px 0;font-size:13px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+details{border-top:1px solid var(--line);padding:8px 0}summary{cursor:pointer;font-weight:600}label.step{display:flex;gap:8px;align-items:flex-start;padding:6px 0}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:12px}
+select{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:32px}
+a{color:var(--accent)}@media (max-width:640px){#mechwrap{height:380px}th:nth-child(4),td:nth-child(4){display:none}}
+</style>
+</head>
+<body>
+<header><h1 id="title">Hardware Blueprint</h1>
+<nav role="tablist" aria-label="Project views">
+<button role="tab" data-tab="info" aria-selected="true">Info</button><button role="tab" data-tab="parts">Parts</button>
+<button role="tab" data-tab="wiring">Wiring</button><button role="tab" data-tab="mech">Mech</button>
+<button role="tab" data-tab="guide">Instructions</button><button role="tab" data-tab="code">Code</button></nav></header>
+<main>
+<section id="tab-info"></section>
+<section id="tab-parts" hidden></section>
+<section id="tab-wiring" hidden><div class="card scroll" id="wiring"></div></section>
+<section id="tab-mech" hidden><div id="mechwrap"><canvas id="mech" aria-label="3D assembly; drag to rotate, scroll to zoom"></canvas><div id="mechinfo"></div></div><div class="card tree" id="mechtree" style="margin-top:16px"></div></section>
+<section id="tab-guide" hidden></section>
+<section id="tab-code" hidden></section>
+</main>
+<script>window.HWBP_PROJECT = /*__PROJECT__*/null; window.HWBP_MESHES = /*__MESHES__*/null;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+const TYPE_VAR={mcu:'--mcu',sensor:'--sensor',actuator:'--actuator',power:'--power',module:'--module',display:'--display',structural:'--structural',enclosure:'--enclosure',mechanism:'--mechanism',misc:'--misc','3d_printed':'--printed',other:'--other'};
+const LABEL={mcu:'MCU',sensor:'Sensor',actuator:'Actuator',power:'Power',module:'Module',display:'Display',structural:'Structural',enclosure:'Enclosure',mechanism:'Mechanism',misc:'Misc','3d_printed':'3D Print',other:'Other'};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const color=t=>css(TYPE_VAR[t]||'--other');const money=v=>'$'+(Number(v)||0).toFixed(2);
+async function load(){
+  if(window.HWBP_PROJECT) return window.HWBP_PROJECT;
+  const src=new URLSearchParams(location.search).get('src');
+  if(!src) return null; const r=await fetch(src); const d=await r.json(); return d.content||d;
+}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+load().then(p=>{ if(!p){document.getElementById('tab-info').innerHTML='<div class="card">Load a project with <code>?src=project.json</code>.</div>';return;} render(p); });
+function render(p){
+  document.getElementById('title').textContent=p.projectName||'Project';
+  const nodes=p.nodes||[];
+  // ---------------- info
+  const bom=p.bom||{};const rollup=bom.rollup||[];const pw=p.power||{};
+  const issues=(p.issues||[]).map(i=>`<li><span class="badge sev-${esc(i.severity)}">${esc(i.severity)}</span> ${esc(i.message)}${i.fix?` <span class="muted">— ${esc(i.fix)}</span>`:''}</li>`).join('');
+  document.getElementById('tab-info').innerHTML=`<div class="card"><div class="tags">${(p.notes||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+  <p>${esc(p.projectDescription||p.originalPrompt||'')}</p></div>
+  <div class="grid"><div class="card kpi"><span class="muted small">Parts</span><b>${nodes.length}</b></div>
+  <div class="card kpi"><span class="muted small">Est. cost</span><b>${money(bom.estimateTotalUsd ?? nodes.reduce((a,n)=>a+(n.estimatedCost||0)*(n.quantity||1),0))}</b></div>
+  <div class="card kpi"><span class="muted small">Power</span><b>${esc(pw.source||'—')}</b><span class="small muted">${pw.runtimeHours?('≈'+pw.runtimeHours+' h runtime'):''}</span></div>
+  <div class="card kpi"><span class="muted small">Size (mm)</span><b>${(p.mechLayout&&p.mechLayout.bbox?p.mechLayout.bbox.size.map(v=>Math.round(v)).join(' × '):'—')}</b></div></div>
+  ${rollup.length?`<div class="card"><table><thead><tr><th>Category</th><th class="num">Parts</th><th class="num">Cost</th></tr></thead><tbody>${rollup.map(c=>`<tr><td><b style="text-transform:capitalize">${esc(c.category)}</b></td><td class="num">${c.parts}</td><td class="num">${money(c.cost)}</td></tr>`+c.types.map(t=>`<tr><td>&nbsp;&nbsp;<span class="dot" style="background:${color(t.type)}"></span>${esc(LABEL[t.type]||t.type)}</td><td class="num">${t.parts}</td><td class="num">${money(t.cost)}</td></tr>`).join('')).join('')}</tbody></table></div>`:''}
+  ${issues?`<div class="card"><h3 style="margin-top:0">Design review</h3><ul>${issues}</ul></div>`:''}
+  ${p.plan?`<div class="card"><h3 style="margin-top:0">Plan</h3><pre style="white-space:pre-wrap">${esc(p.plan)}</pre></div>`:''}`;
+  // ---------------- parts
+  const types=[...new Set(nodes.map(n=>n.type))];
+  const partsEl=document.getElementById('tab-parts');
+  partsEl.innerHTML=`<div class="card"><label class="small muted" for="filter">Category</label> <select id="filter"><option value="">All (${nodes.length})</option>${types.map(t=>`<option value="${esc(t)}">${esc(LABEL[t]||t)}</option>`).join('')}</select>
+  <div class="scroll"><table><thead><tr><th>Part</th><th class="num">Qty</th><th class="num">Unit</th><th>Why / source</th><th class="num">Subtotal</th></tr></thead><tbody id="partrows"></tbody></table></div></div>
+  ${(p.suggestions||[]).length?`<div class="card"><h3 style="margin-top:0">Suggestions</h3><table><tbody>${p.suggestions.map(s=>`<tr><td><span class="badge">${esc(s.kind)}</span> ${esc(s.name)}<div class="small muted">${esc((s.reasons||[]).join('; '))}</div></td><td class="muted">${esc(s.nodeId||'')}</td><td class="num">${s.priceDeltaUsd!=null?(s.priceDeltaUsd>0?'+':'')+money(s.priceDeltaUsd).replace('$-','-$'):''}</td></tr>`).join('')}</tbody></table></div>`:''}`;
+  const rows=f=>nodes.filter(n=>!f||n.type===f).map(n=>{const src=(n.research&&n.research.sourcing||[]).find(o=>o.url);return `<tr><td><span class="dot" style="background:${color(n.type)}"></span><b>${esc(n.name)}</b><div class="small muted">${esc(n.productName||n.description||'')}</div><span class="badge" style="color:${color(n.type)}">${esc(LABEL[n.type]||n.type)}</span></td>
+  <td class="num">${n.quantity||1}</td><td class="num">~${money(n.estimatedCost)}</td><td class="small">${esc((n.rationale||[]).slice(0,2).join('; '))}${src?`<div><a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.vendor)}${src.price?' '+esc(src.price):''}</a></div>`:''}</td><td class="num">~${money((n.estimatedCost||0)*(n.quantity||1))}</td></tr>`}).join('');
+  const tb=document.getElementById('partrows');tb.innerHTML=rows('');document.getElementById('filter').onchange=e=>tb.innerHTML=rows(e.target.value);
+  // ---------------- wiring
+  drawWiring(p);
+  // ---------------- guide
+  const done=store('hwbp:'+(p.imagePromptSnapshot&&p.imagePromptSnapshot.designHash||p.projectName))||{};
+  const pre=p.instructionPreamble||{tools:[],assumptions:[]};
+  document.getElementById('tab-guide').innerHTML=`<div class="card"><h3 style="margin-top:0">Tools</h3><div class="tags">${pre.tools.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><h3>Assumptions</h3><ul>${pre.assumptions.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>`+
+  (p.instructionSteps||[]).map((s,i)=>`<div class="card"><h3 style="margin-top:0">${i+1}. ${esc(s.title||s.id)}</h3>${s.subSteps.map((ss,j)=>`<details><summary><label class="step"><input type="checkbox" data-step="${esc(ss.id)}" ${done[ss.id]?'checked':''}/> ${i+1}.${j+1} ${esc(ss.title)}</label></summary><div class="small muted">Parts: ${esc((ss.partIds||[]).join(', '))}${ss.tools?' · Tools: '+esc(ss.tools.join(', ')):''}</div>${(ss.details||[]).length?`<ul class="small">${ss.details.map(d=>`<li>${esc(d)}</li>`).join('')}</ul>`:''}</details>`).join('')}</div>`).join('');
+  document.querySelectorAll('[data-step]').forEach(cb=>cb.onchange=()=>{done[cb.dataset.step]=cb.checked;store('hwbp:'+(p.imagePromptSnapshot&&p.imagePromptSnapshot.designHash||p.projectName),done)});
+  // ---------------- code
+  const fw=p.firmware||{};document.getElementById('tab-code').innerHTML=Object.keys(fw).length?Object.entries(fw).map(([f,t])=>`<div class="card"><b>${esc(f)}</b><pre>${esc(t)}</pre></div>`).join(''):'<div class="card muted">No firmware in this document.</div>';
+  // ---------------- tabs
+  const tabs=[...document.querySelectorAll('nav button')];let mechInit=false;
+  function show(name){tabs.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name));document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='tab-'+name);store('hwbp:tab',name);if(name==='mech'&&!mechInit){mechInit=true;drawMech(p);}}
+  tabs.forEach(b=>b.onclick=()=>show(b.dataset.tab));show(new URLSearchParams(location.search).get('tab')||store('hwbp:tab')||'info');
+}
+function drawWiring(p){
+  const L=p.wiringLayout, el=document.getElementById('wiring');
+  if(!L||!L.nodes){el.innerHTML='<p class="muted">No wiring layout in this document.</p>';return;}
+  const meta=L.nodeMeta||{}, m=24, W=L.width+2*m, H=L.height+2*m;
+  const st={data:[css('--ok'),2,''],power:[css('--power'),1.5,'4 4'],ground:[css('--muted'),1,'2 3']};
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:${Math.min(W,720)}px;height:auto" viewBox="0 0 ${W} ${H}" font-family="Inter,system-ui,sans-serif"><g transform="translate(${m},${m})">`;
+  for(const e of L.edges){const [c,w,d]=st[e.type]||st.data;s+=`<path d="M${e.points.map(q=>q.join(',')).join(' L')}" fill="none" stroke="${c}" stroke-width="${w}" ${d?`stroke-dasharray="${d}"`:''}/>`;
+    if(e.label){const k=Math.floor(e.points.length/2),a=e.points[k-1],b=e.points[k],x=(a[0]+b[0])/2,y=(a[1]+b[1])/2,tw=6.2*e.label.length+8;s+=`<rect x="${x-tw/2}" y="${y-8}" width="${tw}" height="14" rx="3" fill="${css('--surface')}" stroke="${css('--line')}"/><text x="${x}" y="${y+3}" font-size="9" font-weight="700" text-anchor="middle" fill="${c}">${esc(e.label)}</text>`;}}
+  for(const [id,b] of Object.entries(L.nodes)){const n=meta[id]||{},c=color(n.type);s+=`<g><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" fill="${css('--surface')}" stroke="${c}" stroke-width="1.5"/><text x="${b.x+10}" y="${b.y+18}" font-size="9" font-weight="700" fill="${c}">${esc((LABEL[n.type]||n.type||'').toUpperCase())}</text><text x="${b.x+10}" y="${b.y+36}" font-size="13" font-weight="600" fill="${css('--text')}">${esc((n.name||id).slice(0,26))}</text><text x="${b.x+10}" y="${b.y+52}" font-size="10" fill="${css('--muted')}">${esc((n.product||'').slice(0,30))}</text>`;
+    (n.pins||[]).slice(0,8).forEach((pin,k)=>{const cx=b.x+10+(k%4)*46,cy=b.y+66+Math.floor(k/4)*24;s+=`<rect x="${cx}" y="${cy}" width="42" height="18" rx="9" fill="none" stroke="${c}"/><text x="${cx+21}" y="${cy+12.5}" font-size="8.5" text-anchor="middle" fill="${c}">${esc(pin.length>7?pin.slice(0,6)+'…':pin)}</text>`});s+='</g>';}
+  el.innerHTML=s+'</g></svg>';
+}
+function drawMech(p){
+  const L=p.mechLayout, canvas=document.getElementById('mech'), info=document.getElementById('mechinfo');
+  if(!L||!L.parts||!window.THREE){info.textContent=window.THREE?'No mechanical layout.':'3D view needs three.js (offline?)';return;}
+  const T=window.THREE, r=new T.WebGLRenderer({canvas,antialias:true,alpha:true});r.setPixelRatio(Math.min(2,devicePixelRatio));
+  const scene=new T.Scene(), cam=new T.PerspectiveCamera(45,1,0.1,5000);scene.add(new T.AmbientLight(0xffffff,0.7));const dl=new T.DirectionalLight(0xffffff,0.6);dl.position.set(1,2,1.5);scene.add(dl);
+  const lo=L.bbox.min,hi=L.bbox.max,ctr=[(lo[0]+hi[0])/2,(lo[1]+hi[1])/2,(lo[2]+hi[2])/2],diag=Math.hypot(...L.bbox.size)||100;
+  const grid=new T.GridHelper(diag*2,20,0x888888,0x444444);grid.position.y=lo[1];scene.add(grid);
+  const meshes=window.HWBP_MESHES||{};
+  for(const [id,part] of Object.entries(L.parts)){let geo;const mm=meshes[id];
+    if(mm){geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(mm.v,3));geo.setIndex(mm.f);geo.computeVertexNormals();}
+    else geo=part.shape==='cylinder'?new T.CylinderGeometry(Math.min(part.size[0],part.size[2])/2,Math.min(part.size[0],part.size[2])/2,part.size[1],32):new T.BoxGeometry(...part.size);
+    const c=new T.Color(part.color), elec=['mcu','sensor','actuator','power','module','display'].includes(part.type);
+    const mesh=new T.Mesh(geo,new T.MeshStandardMaterial({color:c,transparent:true,opacity:mm?0.85:(elec?0.35:0.25),side:T.DoubleSide,roughness:.8}));
+    mesh.position.set(...part.pos);scene.add(mesh);const edges=new T.LineSegments(new T.EdgesGeometry(geo,15),new T.LineBasicMaterial({color:c}));edges.position.copy(mesh.position);scene.add(edges);}
+  let th=0.8,ph=0.9,dist=diag*1.6;const resize=()=>{const w=canvas.clientWidth,h=canvas.clientHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();};
+  const draw=()=>{cam.position.set(ctr[0]+dist*Math.sin(ph)*Math.cos(th),ctr[1]+dist*Math.cos(ph),ctr[2]+dist*Math.sin(ph)*Math.sin(th));cam.lookAt(...ctr);r.render(scene,cam);};
+  let drag=null;canvas.onpointerdown=e=>{drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId)};canvas.onpointerup=()=>drag=null;
+  canvas.onpointermove=e=>{if(!drag)return;th+=(e.clientX-drag[0])*0.01;ph=Math.max(0.1,Math.min(3.0,ph-(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];draw();};
+  canvas.onwheel=e=>{e.preventDefault();dist*=Math.exp(e.deltaY*0.001);draw();};addEventListener('resize',()=>{resize();draw()});resize();draw();
+  info.textContent=`X ${Math.round(L.bbox.size[0])} mm · Y ${Math.round(L.bbox.size[1])} mm · Z ${Math.round(L.bbox.size[2])} mm · ${Object.keys(L.parts).length} parts`;
+  document.getElementById('mechtree').innerHTML='<h3 style="margin-top:0">Assembly</h3>'+(L.tree||[]).map(row=>`<div style="padding-left:${row.depth*16}px">${row.depth?'└ ':''}<span class="dot" style="background:${color(row.type)}"></span>${esc(row.name)}</div>`).join('')+((L.collisions||[]).length?`<p class="sev-warning small">Interference: ${L.collisions.map(c=>c.join(' × ')).join(', ')}</p>`:'');
+}
+})();
+</script>
+</body>
+</html>
