@@ -14,6 +14,7 @@ from hwbp.image import brief_from_image, image_to_mesh
 from hwbp.mech import solve_layout
 from hwbp.models import ProjectContent
 from hwbp.pricing import build_bom
+from hwbp.vision import VisionError, vision_from_env
 
 
 def _out(text: str) -> None:
@@ -24,7 +25,21 @@ def cmd_generate(a: argparse.Namespace) -> int:
     form_factor = None
     prompt = a.prompt or ""
     if a.image:
-        brief = brief_from_image(Path(a.image).read_bytes(), user_prompt=prompt or None)
+        data = Path(a.image).read_bytes()
+        mime = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}.get(
+            Path(a.image).suffix.lower(), "image/png"
+        )
+        try:
+            brief = brief_from_image(data, mime, user_prompt=prompt or None, vision=vision_from_env(a.vision))
+        except VisionError as e:
+            _out(f"vision model unavailable ({e}); using the offline picture analysis")
+            brief = brief_from_image(data, mime, user_prompt=prompt or None)
+        if brief.needs_function:
+            _out("Picture: " + brief.analysis.get("summary", "outline found"))
+            _out("What should the device do? Re-run with a prompt, for example:")
+            for o in brief.function_options:
+                _out(f'  hwbp generate "{o}" --image {a.image}')
+            return 2
         prompt = brief.prompt
         if brief.silhouette:
             form_factor = {
@@ -32,6 +47,9 @@ def cmd_generate(a: argparse.Namespace) -> int:
                 "depthMm": brief.silhouette.depth_mm,
                 "aspect": brief.silhouette.aspect,
             }
+        if brief.detected and brief.detected.get("displayFraction"):
+            form_factor = {**(form_factor or {}), "displayFraction": brief.detected["displayFraction"]}
+        _out(f"Prompt from picture: {prompt}")
     content = Engine().generate(prompt, form_factor=form_factor)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -77,8 +95,11 @@ def cmd_bom(a: argparse.Namespace) -> int:
 
 
 def cmd_serve(a: argparse.Namespace) -> int:  # pragma: no cover - starts a server
+    import os
+
     import uvicorn
 
+    os.environ["HWBP_VISION"] = a.vision
     uvicorn.run("hwbp.api:app", host=a.host, port=a.port)
     return 0
 
@@ -90,6 +111,12 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("prompt", nargs="?", default="")
     g.add_argument("--image", help="PNG/PGM/PPM (JPEG with Pillow) used for the form factor")
     g.add_argument("-o", "--out", default="out")
+    g.add_argument(
+        "--vision",
+        choices=["auto", "claude", "none"],
+        default="auto",
+        help="vision model for photos (auto: Claude when ANTHROPIC_API_KEY is set)",
+    )
     g.set_defaults(fn=cmd_generate)
     i = sub.add_parser("image2mesh", help="picture -> STL/OBJ/GLB")
     i.add_argument("image")
@@ -109,6 +136,12 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("serve", help="run the HTTP protocol server")
     s.add_argument("--host", default="127.0.0.1")
     s.add_argument("--port", type=int, default=8000)
+    s.add_argument(
+        "--vision",
+        choices=["auto", "claude", "none"],
+        default="auto",
+        help="vision model for photo uploads (auto: Claude when ANTHROPIC_API_KEY is set)",
+    )
     s.set_defaults(fn=cmd_serve)
     return p
 

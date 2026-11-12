@@ -13,6 +13,11 @@ dependencies = [
 api = [
     "fastapi>=0.110,<1",
     "uvicorn>=0.27",
+    "websockets>=12",
+    "pillow>=10",
+]
+vision = [
+    "anthropic>=2.8",
 ]
 
 [dependency-groups]
@@ -24,6 +29,9 @@ dev = [
     "ruff>=0.15",
     "steputils>=0.1",
     "uvicorn>=0.27",
+    "websockets>=12",
+    "pillow>=10",
+    "anthropic>=2.8",
 ]
 
 [project.scripts]

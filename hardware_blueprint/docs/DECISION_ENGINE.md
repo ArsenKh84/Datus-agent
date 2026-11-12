@@ -1,8 +1,9 @@
 # Decision engine — algorithms
 
 ```
-prompt ─┐                          ┌─ VisionModel (optional LLM) ─┐
-picture ┴─ image.py: decode → Otsu → largest component → contour → RDP ─┴─ form factor + prompt
+prompt ─┐                          ┌─ VisionModel (ClaudeVision when a key is set) ─┐
+picture ┴─ image.py: decode → Otsu → components → outline + panel features ───────┴─ form factor + parts + prompt
+            │                                     (no prompt, no vision → ask "what should it do?")
             │
 requirements.py   capabilities, counts, power source, runtime, budget, size class, priorities, materials, keywords
             │
@@ -135,6 +136,25 @@ lathed around Y, uniform scale). All outputs are watertight. Outline drawings (h
 area) are auto-filled to solids; small holes (mounting holes) are kept. STEP export writes an AP214 faceted B-rep
 (one FACETED_BREP per mesh) — verified by re-parsing with the independent `steputils` ISO-10303-21 reader.
 
+**Picture → blueprint** (`image.analyze_picture`, `brief_from_image`): the foreground mask is split into
+4-connected components; the largest is the device outline. Candidate *panel regions* are (a) holes of a solid
+silhouette and (b) other components drawn inside the outline's bounding box, each filled with the area it encloses
+(a drawn rectangle becomes a solid rectangle). An outline drawing's interior (> 50 % of the area) is not a region.
+Each region is classified by area fraction of the front f, rectangularity r = area / bbox area and aspect a:
+rectangle (r ≥ 0.86) with f ≥ 6 % and 1/3.5 ≤ a ≤ 3.5 → **display window** (largest only); f < 3 % round or
+squarish → **push button**; long thin rectangle (a > 3) → slot (USB / vent / card, asked); round 3–20 % → knob,
+speaker or lens (asked); round ≥ 20 % → round display or speaker (asked). Pictures with < 85 % near-black/near-white
+pixels are treated as **photos**: their regions come from lighting, so only the outline is used and a vision model is
+recommended. The detected parts are appended to the prompt ("… with a display and 3 buttons") unless the user already
+named them, and the display window's share of the front steers selection: f ≥ 20 % rules out `display.small` (no
+0.96" OLED behind a large window), f ≤ 8 % rules out `display.large` (`Need.avoid`: excluded while any other candidate
+remains). With no prompt and no vision model the run stops in `waiting_for_input` with a `device_function` question
+whose options fit the picture (screen + buttons → handheld console / weather station / thermostat / logger; screen
+only → clock / dashboard / monitor; buttons only → remote / keypad / doorbell; round → speaker / lamp / timer; long →
+light bar / door sensor …), plus free text. `vision.ClaudeVision` sends the picture to Claude with `VISION_PROMPT`
+and a strict JSON schema (structured outputs) and server-side refusal fallbacks; any vision error falls back to the
+offline path and is reported in `imageAnalysis.uncertainties`.
+
 **Images without AI**: the hero image and per-step illustrations are isometric painter's-algorithm renders of the
 solved assembly (shells drawn last and translucent = x-ray), so pictures always match the design; rerolls rotate
 the view deterministically.
@@ -150,7 +170,7 @@ the extra cost is below that vendor's shipping fee. `build_bom(nodes, build_qty)
 | Seam | Protocol | Default |
 |---|---|---|
 | Requirements | `RequirementExtractor.extract(prompt) -> Requirements` | rule-based |
-| Picture understanding | `VisionModel.describe(image, mime, VISION_PROMPT) -> {name, prompt, summary, components, uncertainties, approxSizeMm}` | none (text prompt required) |
+| Picture understanding | `VisionModel.describe(image, mime, VISION_PROMPT) -> {name, prompt, summary, components, uncertainties, approxSizeMm}` | offline drawing analysis + "what should it do?" question; `vision.ClaudeVision` when `ANTHROPIC_API_KEY` is set (`--vision`, `HWBP_VISION`, `HWBP_VISION_MODEL`) |
 | CAD | `CadGenerator.generate(node, instruction, parameters) -> Mesh` | parametric |
 | Sourcing | `SourcingProvider.offers(part) -> [Offer]` (`NexarProvider` with injected transport) | catalog + search links |
 | LLM context | `edits.project_summary(content)` | — |
@@ -159,5 +179,6 @@ the extra cost is below that vendor's shipping fee. `build_bom(nodes, build_qty)
 ## 10. Known limits
 Catalog prices are illustrative (replace with live sourcing). The rule-based extractor covers common phrasing, not
 arbitrary language — plug in an LLM extractor for open-ended prompts. Meshes are functional placeholders/printable
-basics, not organic industrial design; STEP export is not implemented. Picture → blueprint needs a vision model to
-infer *function* from a photo; offline it only derives the form factor.
+basics, not organic industrial design; STEP export is faceted (triangles), not NURBS. Offline, a picture gives the
+outline and the parts drawn on its front (screen, buttons); what the device *does* comes from the user's answer or a
+vision model, and a photo's parts are only recognised by a vision model.

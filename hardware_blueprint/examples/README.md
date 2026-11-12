@@ -4,6 +4,8 @@
 |---|---|
 | `radar/` | `uv run hwbp generate "A portable tactical radar with a touchscreen display, titanium and carbon fiber enclosure" -o examples/radar` |
 | `robot_car/` | `uv run hwbp generate "4WD obstacle-avoiding robot car with ultrasonic sensors front and back and LED lights" -o examples/robot_car` |
+| `picture_to_blueprint/weather_station/` | `uv run hwbp generate "portable weather station" --image examples/picture_to_blueprint/device_sketch.png -o examples/picture_to_blueprint/weather_station` — the sketch's screen rectangle and three circles become a display and 3 buttons (the large window rules out a 0.96" OLED) |
+| (picture only) | `uv run hwbp generate --image examples/picture_to_blueprint/device_sketch.png` — prints what the picture shows and suggests functions; the web studio asks the same question |
 | `picture_to_mesh/bracket.stl` | `uv run hwbp image2mesh examples/picture_to_mesh/bracket.png --mode extrude --width 60 --height 6 -o examples/picture_to_mesh/bracket.stl` (3 holes preserved) |
 | `picture_to_mesh/vase.glb` | `uv run hwbp image2mesh examples/picture_to_mesh/vase.png --mode revolve --width 70 -o examples/picture_to_mesh/vase.glb` |
 | relief (not committed, ~3 MB) | `uv run hwbp image2mesh examples/picture_to_mesh/vase.png --mode relief --width 60 --height 4 -o vase_relief.stl` |

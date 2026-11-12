@@ -25,8 +25,14 @@ RunSnapshot {
   "failure": null | "Error: …", "projectData": ProjectDocument | null
 }
 ```
-Picture input: with a text prompt the picture supplies the form factor (silhouette width/depth/aspect →
-enclosure footprint); without one a `VisionModel` must be configured (else 400). 
+Picture input: the picture always supplies the form factor (silhouette width/depth/aspect → enclosure footprint);
+a drawing also supplies front-panel parts (`imageAnalysis.detected`: display window, buttons, slots, knobs; the window's
+share of the front → `form_factor.displayFraction`). With a text prompt, or a configured vision model
+(`hwbp serve --vision auto|claude|none`, env `HWBP_VISION`; Claude when `ANTHROPIC_API_KEY` is set), the run proceeds.
+With neither, the run returns `status: "waiting_for_input"`, `phase: "questions"` and one question
+`{id: "device_function", options: [4 functions that fit the picture], freeText: true}`; answer it with
+`POST /api/generation-runs/{id}/questions {revision, qa: [{id: "device_function", answer}]}` (422 `answer_required` when
+empty; `/retry` is 422 until answered). A failing vision model falls back to this offline path. 
 
 ## Projects
 
@@ -115,4 +121,7 @@ Errors: `{"detail": {"error": <code>, "message": …}}` with the reference codes
 | Export | `POST /api/export/cad {projectId, formats:[stl,step,glb,obj], nodeIds?}` (headers `X-Downloaded-Count`, `X-Omitted-Count`) · `POST /api/export/file {projectId, kind}` · `POST /api/export/zip` | kinds: project.json, bom.csv, guide.md, wiring.svg, wiring_enriched.svg, viewer.html, hero.svg, firmware.zip |
 | CAD | artifacts now include `model.step` · `POST /api/cad-wallet/purchase {bundle: small|medium|large}` | purchase is simulated (no payment provider) |
 | Account | `GET /api/profile/me` · `GET /api/account` · `POST /api/set-username|auto-username|set-bio|set-profile-color` · `POST /api/onboarding/complete` · `GET/POST /api/email-preferences` · `GET|POST /api/get-credits` · `POST /api/consume-credit` · `GET /api/check-subscription` · `POST /api/billing/plan` (simulated) · `POST /api/contact-leads` | free plan: 10 design credits / week (402 `no_credits`) |
-| Pages | `GET /` (studio) · `GET /p/{id}` (project page + chat) · `GET /s/{token}` (share page + Star/Copy) | |
+| Picture | `POST /api/input-images/{id}/analysis` → `{detected, functionOptions, visionModel}` | offline analysis shown before generating |
+| Project page | `GET /api/projects/{id}/meta` → `{role, version, author{username, profileColor}, published{token, url, starCount} or null}` · `GET /api/projects/{id}/cad-jobs` → `{eligible[], done, jobs{nodeId: job}, wallet}` | role-aware controls; Mech sidebar "CAD n/N" |
+| Community cards | items of `/api/community`, `/community/starred`, `/trending` carry `ownerId` and `author{username, profileColor}` | |
+| Pages | `GET /` (studio) · `GET /p/{id}` (project page + chat) · `GET /s/{token}` (share page + Star/Copy) · `GET /community` · `/projects` · `/pricing` · `/faq` · `/about` · `/account` · `/invitations#token=` · `/join#token=` | live updates need the `websockets` package (in the `api` extra) |

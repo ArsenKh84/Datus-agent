@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import threading
 import time
 import uuid
@@ -26,7 +27,7 @@ from hwbp.edits import ProjectStore, VersionConflict, apply_ops, apply_plan, mes
 from hwbp.engine import Engine
 from hwbp.enrichment import canonicalize, enrich_node, research_queries
 from hwbp.export import export_zip, wiring_svg
-from hwbp.image import VisionModel, brief_from_image, image_to_mesh
+from hwbp.image import FUNCTION_QUESTION_ID, ImageBrief, VisionModel, brief_from_image, image_to_mesh
 from hwbp.mech import solve_layout
 from hwbp.models import Node, ProjectContent
 from hwbp.pricing import build_bom
@@ -44,6 +45,7 @@ from hwbp.services import (
     Turn,
     diff_plan,
 )
+from hwbp.vision import vision_from_env
 from hwbp.wiring import infer_rails
 
 SECTIONS_BY_PHASE = {
@@ -74,6 +76,7 @@ class Run:
     owner: str = "local-user"
     image_analysis: dict | None = None
     answers: dict | None = None
+    detected: dict | None = None  # offline picture analysis (front-panel parts) for composing the prompt
     created_at: float = field(default_factory=time.time)
     cond: threading.Condition = field(default_factory=threading.Condition)
 
@@ -145,7 +148,7 @@ def create_app(engine: Engine | None = None, run_async: bool = True, vision: Vis
         if key and key in st.idem:
             return st.runs[st.idem[key]].public()
         prompt = (body.get("prompt") or "").strip()
-        form_factor, analysis = None, None
+        form_factor, analysis, ask, detected = None, None, None, None
         for img in body.get("inputImages") or []:
             if isinstance(img, str):  # id from POST /api/generation-input-images
                 try:
@@ -155,24 +158,37 @@ def create_app(engine: Engine | None = None, run_async: bool = True, vision: Vis
                 data, mime = stored["bytes"], stored["mimeType"]
             else:
                 data, mime = base64.b64decode(img.get("data") or ""), img.get("mime", "image/png")
-            try:
-                brief = brief_from_image(data, mime, user_prompt=prompt or None, vision=vision)
-            except ValueError as e:
-                raise HTTPException(400, str(e)) from e
+            brief = _brief(data, mime, prompt or None, vision)
             prompt = brief.prompt
             analysis = dict(brief.analysis)
+            detected = brief.detected
             if brief.silhouette:
                 form_factor = {"widthMm": brief.silhouette.width_mm, "depthMm": brief.silhouette.depth_mm,
                                "aspect": brief.silhouette.aspect, "fillRatio": brief.silhouette.fill_ratio}  # fmt: skip
                 analysis["silhouette"] = form_factor
-        if not prompt:
+            if detected and detected.get("displayFraction"):
+                form_factor = {**(form_factor or {}), "displayFraction": detected["displayFraction"]}
+            if brief.needs_function:
+                ask = {"id": FUNCTION_QUESTION_ID, "question": "What should this device do? The picture sets its shape"
+                       " — pick one or type your own.", "options": brief.function_options,
+                       "default": brief.function_options[0], "freeText": True}  # fmt: skip
+        if not prompt and not ask:
             raise HTTPException(400, "prompt or inputImages required")
         try:
             st.accounts.consume_credit(user)
         except ServiceError as e:
             raise HTTPException(e.status, {"error": e.code, "message": e.message}) from e
         run = Run(id=uuid.uuid4().hex, prompt=prompt, idempotency_key=key, form_factor=form_factor, owner=user,
-                  image_analysis=analysis, answers=body.get("answers"))  # fmt: skip
+                  image_analysis=analysis, answers=body.get("answers"), detected=detected)  # fmt: skip
+        if ask:  # picture only, nothing says what the device does: wait for the user's answer
+            run.status, run.phase, run.revision = "waiting_for_input", "questions", 1
+            run.questions = [ask]
+            run.messages.append("Picture analysed: " + ((analysis or {}).get("summary") or "outline found"))
+            st.runs[run.id] = run
+            st.community.counters["projectsCreated"] += 1
+            if key:
+                st.idem[key] = run.id
+            return run.public()
         st.runs[run.id] = run
         st.community.counters["projectsCreated"] += 1
         if key:
@@ -546,6 +562,19 @@ def _execute(st: State, run: Run, answers: dict | None) -> None:
             run.cond.notify_all()
 
 
+def _brief(data: bytes, mime: str, prompt: str | None, vision: VisionModel | None) -> ImageBrief:
+    """Picture brief; a failing vision model (refusal, network, quota) falls back to the offline analysis."""
+    try:
+        return brief_from_image(data, mime, user_prompt=prompt, vision=vision)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    except Exception as e:  # noqa: BLE001 - any vision-provider failure degrades to the offline path
+        brief = brief_from_image(data, mime, user_prompt=prompt, vision=None)
+        brief.analysis.setdefault("uncertainties", []).insert(0, f"Vision model unavailable ({type(e).__name__}); "
+                                                                 "used the offline picture analysis.")  # fmt: skip
+        return brief
+
+
 def _run(st: State, run_id: str) -> Run:
     if run_id not in st.runs:
         raise HTTPException(404, "unknown run")
@@ -592,4 +621,4 @@ def _plan_preview(st: State, content: ProjectContent, ops: list, turn: "Turn") -
     return new
 
 
-app = create_app()
+app = create_app(vision=vision_from_env(os.environ.get("HWBP_VISION", "auto")))

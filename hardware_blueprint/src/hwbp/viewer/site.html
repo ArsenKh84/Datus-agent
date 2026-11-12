@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hardware Blueprint</title>
+<style>
+:root{--bg:#f6f6f4;--surface:#ffffff;--text:#151515;--muted:#6b6d6c;--line:#e2e3e1;--accent:#2f6fed;--ok:#2f8f4e;--warn:#b7791f;--err:#c53030}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff}}
+:root[data-theme="dark"]{--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,sans-serif}
+header.site{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5}
+.brand{font-weight:700;color:var(--text);text-decoration:none;white-space:nowrap}
+nav.links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0}nav.links a{color:var(--muted);text-decoration:none;font:600 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;padding:9px 10px;border-radius:8px;white-space:nowrap}
+nav.links a:hover{color:var(--text)}nav.links a[aria-current="page"]{color:var(--text);background:var(--bg)}
+main{max-width:1100px;margin:0 auto;padding:16px}h1{font-size:22px;margin:8px 0 4px}h2{font-size:15px;margin:0 0 10px}
+.lead{color:var(--muted);margin:0 0 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.btn{border:1px solid var(--line);background:none;color:var(--text);padding:8px 14px;border-radius:8px;font:600 13px/1 inherit;cursor:pointer;min-height:36px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn:disabled{opacity:.5;cursor:not-allowed}.btn[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+input[type=text],input[type=email],textarea,select{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+textarea{min-height:80px;resize:vertical}label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.muted{color:var(--muted)}.small{font-size:12px}.ok{color:var(--ok)}.err{color:var(--err)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.proj{display:flex;flex-direction:column;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.proj img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--bg);display:block;border-bottom:1px solid var(--line)}
+.proj .meta{padding:10px 12px}.proj b{display:block;text-transform:uppercase;letter-spacing:.03em;font-size:13px}
+.pills{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:11px;color:var(--muted)}.pill{border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.avatar{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:-1px;margin-right:4px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.plan{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--surface)}.plan.current{border-color:var(--accent)}
+.plan .price{font-size:24px;font-weight:700}.plan ul{padding-left:18px;margin:10px 0}
+details{border-top:1px solid var(--line);padding:12px 0}details:first-child{border-top:none}summary{cursor:pointer;font-weight:600}
+.stats{display:flex;gap:24px;flex-wrap:wrap}.stats b{font-size:20px;display:block}
+.notice{border:1px solid var(--line);border-left:3px solid var(--warn);background:var(--surface);border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:16px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:13px;z-index:20;max-width:calc(100vw - 32px)}
+@media (max-width:640px){header.site{flex-wrap:wrap}nav.links{order:3;width:100%}}
+</style>
+</head>
+<body>
+<header class="site"><a class="brand" href="/">Hardware Blueprint</a>
+<nav class="links" aria-label="Site"><a href="/">Studio</a><a href="/community">Community</a><a href="/projects">My projects</a><a href="/pricing">Pricing</a><a href="/faq">FAQ</a><a href="/about">About</a></nav>
+<a class="btn" href="/account" id="acct">Account</a></header>
+<main id="page"><p class="muted">Loading…</p></main>
+<div id="toast" role="status" hidden></div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function api(path,body,method){const r=await fetch(path,{method:method||(body?'POST':'GET'),headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const d=await r.json().catch(()=>({}));if(!r.ok){const e=new Error((d.detail&&(d.detail.message||d.detail.error))||d.detail||('HTTP '+r.status));e.status=r.status;e.code=d.detail&&d.detail.error;throw e;}return d;}
+function toast(m){const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,3500);}
+const ago=ts=>{const s=Math.max(0,Date.now()/1000-ts);if(s<3600)return Math.max(1,Math.round(s/60))+'m ago';if(s<86400)return Math.round(s/3600)+'h ago';if(s<172800)return 'Yesterday';return Math.round(s/86400)+'d ago';};
+const card=p=>`<a class="proj" href="/s/${esc(p.token)}">${p.thumbnailUrl?`<img alt="" loading="lazy" src="${esc(p.thumbnailUrl)}"/>`:''}<div class="meta"><b>${esc(p.projectName)}</b>
+  <div class="pills"><span class="pill">${p.nodeCount} parts</span><span class="pill">★ ${p.starCount}</span><span>${ago(p.publishedAt)}</span></div>
+  ${p.author?`<div class="small muted" style="margin-top:6px"><span class="avatar" style="background:${esc(p.author.profileColor||'#888')}"></span>${esc(p.author.username)}</div>`:''}</div></a>`;
+const path=location.pathname.replace(/\/$/,'')||'/';
+document.querySelectorAll('nav.links a').forEach(a=>{if(a.getAttribute('href')===path)a.setAttribute('aria-current','page');});
+api('/api/profile/me').then(p=>{$('acct').innerHTML=`<span class="avatar" style="background:${esc(p.profileColor||'#888')}"></span>${esc(p.username||'Account')}`;}).catch(()=>{});
+const PAGES={'/community':community,'/projects':projects,'/pricing':pricing,'/faq':faq,'/about':about,'/account':account,'/invitations':invitation,'/join':join};
+(PAGES[path]||(()=>{$('page').innerHTML='<div class="card">Page not found. <a href="/">Go to the studio</a>.</div>';}))();
+
+// ---------------------------------------------------------------- community
+async function community(){document.title='Community · Hardware Blueprint';
+  $('page').innerHTML=`<h1>Community projects</h1><p class="lead">Published designs. Open one to see its parts, wiring, 3D layout and build guide, then star it or copy it into your projects.</p>
+  <div class="card"><div class="stats" id="stats"></div></div>
+  <div class="row" style="margin-bottom:12px"><label for="q" style="margin:0" class="small">Search</label><input type="text" id="q" list="sugg" placeholder="robot, lamp, radar…" style="max-width:280px"/><datalist id="sugg"></datalist>
+  <span class="row" role="group" aria-label="Sort">${['trending','new','stars'].map((s,i)=>`<button class="btn" data-sort="${s}" aria-pressed="${i===0}">${s[0].toUpperCase()+s.slice(1)}</button>`).join('')}</span></div>
+  <div class="grid" id="grid"></div><div class="row" style="justify-content:center;margin-top:16px"><button class="btn" id="more" hidden>Load more</button></div>`;
+  api('/api/stats').then(s=>{$('stats').innerHTML=`<span><b>${s.projectsCreated}</b><span class="small muted">projects created</span></span><span><b>${s.accountsCreated}</b><span class="small muted">accounts</span></span><span><b>${s.publishedProjects}</b><span class="small muted">published</span></span>`;}).catch(()=>{});
+  let sort='trending',page=0;
+  const load=async(append)=>{const q=$('q').value.trim();try{const r=await api(`/api/community?sort=${sort}&limit=12&page=${page}${q?'&q='+encodeURIComponent(q):''}`);
+    $('grid').innerHTML=(append?$('grid').innerHTML:'')+(r.projects.map(card).join('')||(append?'':'<p class="muted" style="grid-column:1/-1">No published projects match. Try another search, or publish one from a project page.</p>'));
+    $('more').hidden=(page+1)*12>=r.total;}catch(e){$('grid').innerHTML='<p class="err small">Could not load the community feed. Refresh to try again.</p>';}};
+  document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{sort=b.dataset.sort;page=0;document.querySelectorAll('[data-sort]').forEach(x=>x.setAttribute('aria-pressed',x===b));load(false);});
+  let t=null;$('q').oninput=()=>{clearTimeout(t);t=setTimeout(async()=>{page=0;load(false);const q=$('q').value.trim();if(q){try{const s=await api('/api/community/suggest?q='+encodeURIComponent(q));$('sugg').innerHTML=s.suggestions.map(x=>`<option value="${esc(x.projectName||x)}">`).join('');}catch(e){}}},250);};
+  $('more').onclick=()=>{page++;load(true);};load(false);
+}
+// ---------------------------------------------------------------- my projects
+async function projects(){document.title='My projects · Hardware Blueprint';
+  $('page').innerHTML=`<div class="row" style="justify-content:space-between"><h1>My projects</h1><a class="btn primary" href="/">New project</a></div>
+  <div class="card" id="runs" hidden></div><div class="card"><table><thead><tr><th>Project</th><th>Role</th><th>Version</th><th>Updated</th></tr></thead><tbody id="mine"><tr><td colspan="4" class="muted">Loading…</td></tr></tbody></table></div>
+  <h2>Starred</h2><div class="grid" id="starred"></div>`;
+  try{const r=await api('/api/projects');$('mine').innerHTML=r.projects.map(p=>`<tr><td><a href="/p/${esc(p.id)}">${esc(p.name)}</a></td><td class="muted">${esc(p.role)}</td><td>v${p.version}</td><td class="muted">${p.updatedAt?ago(p.updatedAt):''}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">No projects yet. <a href="/">Describe a device</a> to make your first one.</td></tr>';}catch(e){$('mine').innerHTML='<tr><td colspan="4" class="err">Could not load your projects. Refresh to try again.</td></tr>';}
+  try{const r=await api('/api/community/starred');$('starred').innerHTML=r.projects.map(card).join('')||'<p class="muted small" style="grid-column:1/-1">Star community projects to keep them here.</p>';}catch(e){}
+  try{const r=await api('/api/generation-runs?recoverable=true');const open=r.runs.filter(x=>x.status!=='failed'||x.projectId===null);
+    if(open.length){$('runs').hidden=false;$('runs').innerHTML='<h2>Unfinished generations</h2>'+open.map(x=>`<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:8px 0"><span>${esc((x.messages||[]).slice(-1)[0]||x.id)} <span class="muted small">· ${esc(x.status.replace(/_/g,' '))}</span></span><a class="btn" href="/?run=${esc(x.id)}">${x.status==='waiting_for_input'?'Answer and continue':'Open'}</a></div>`).join('');}}catch(e){}
+}
+// ---------------------------------------------------------------- pricing
+async function pricing(){document.title='Pricing · Hardware Blueprint';
+  $('page').innerHTML=`<h1>Pricing</h1><p class="lead">Design credits pay for generating projects; CAD credits pay for per-part CAD files.</p>
+  <div class="notice">This server has no payment provider configured, so plan changes and credit purchases are simulated and free.</div>
+  <div class="plans" id="plans"></div><h2 style="margin-top:24px">CAD credits</h2><div class="card"><p id="wallet" class="muted">Loading…</p><div class="plans" id="bundles"></div></div>`;
+  const PL=[['free','Free','No charge','10 designs per week','CAD files with purchased credits'],['pro','Pro','Paid plan','Unlimited designs','40 CAD credits every month'],['ultra','Ultra','Paid plan','Unlimited designs','Unlimited CAD files']];
+  const paint=async()=>{try{const [sub,cr,w]=await Promise.all([api('/api/check-subscription'),api('/api/get-credits'),api('/api/cad-wallet')]);
+    $('plans').innerHTML=PL.map(([id,n,price,...f])=>`<div class="plan ${sub.plan===id?'current':''}"><b>${n}</b><div class="small muted">${price}</div><ul class="small">${f.map(x=>`<li>${x}</li>`).join('')}</ul>${sub.plan===id?`<span class="small ok">Current plan${id==='free'?` · ${cr.weekly_credits_remaining} designs left this week`:''}</span>`:`<button class="btn" data-plan="${id}">Switch to ${n}</button>`}</div>`).join('');
+    $('wallet').innerHTML=`Balance: <b>${w.unlimited?'unlimited':w.balance+' credits'}</b>`;
+    $('bundles').innerHTML=[['small',20,10],['medium',120,50],['large',560,200]].map(([id,c,u])=>`<div class="plan"><b>${c} credits</b><div class="price">$${u}</div><button class="btn" data-bundle="${id}">Buy ${c} credits</button></div>`).join('');
+    document.querySelectorAll('[data-plan]').forEach(b=>b.onclick=async()=>{try{await api('/api/billing/plan',{plan:b.dataset.plan});toast('Plan changed (simulated)');paint();}catch(e){toast('Could not change the plan: '+e.message);}});
+    document.querySelectorAll('[data-bundle]').forEach(b=>b.onclick=async()=>{try{const r=await api('/api/cad-wallet/purchase',{bundle:b.dataset.bundle});toast(`Added credits (simulated) · balance ${r.balance}`);paint();}catch(e){toast('Could not add credits: '+e.message);}});
+  }catch(e){$('plans').innerHTML='<p class="err small">Could not load plans. Refresh to try again.</p>';}};paint();
+}
+// ---------------------------------------------------------------- faq / about
+function faq(){document.title='FAQ · Hardware Blueprint';
+  const Q=[['What does it make?','From a description or a picture: a parts list with prices and buy links, a pin-level wiring diagram, a power plan, a 3D layout with printable parts, a step-by-step build guide and starter firmware.'],
+   ['Can I start from a picture?','Yes. Upload a photo or draw the outline. A drawing\'s outline sets the enclosure shape; a screen window and buttons drawn inside it are added as parts. If nothing says what the device does, you pick or type its function. Photos are read by a vision model when one is configured (for example with an ANTHROPIC_API_KEY); without one, only the photo\'s outline is used.'],
+   ['Are the prices real?','The built-in catalog has illustrative list prices with quantity breaks. Connect a sourcing provider (for example Nexar) for live quotes and stock.'],
+   ['How do I change the design?','Open the chat on a project page and ask for a change. You see the planned edit first and approve or dismiss it. Every change is a new version you can restore from History.'],
+   ['Can others work on my project?','Yes. Use Share to invite people by email or create a share link, as viewer or editor. Publishing makes a read-only copy that anyone can view, star and copy.'],
+   ['What CAD formats are available?','Every printable part exports as STL, STEP (faceted), GLB and OBJ, from the Mech tab per part or from Export for all parts.'],
+   ['Is my data sent anywhere?','No, unless you configure a vision model or a sourcing provider. Everything else runs on this server.']];
+  $('page').innerHTML=`<h1>Frequently asked questions</h1><div class="card">${Q.map(([q,a])=>`<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div>`;}
+function about(){document.title='About · Hardware Blueprint';
+  $('page').innerHTML=`<h1>About</h1><p class="lead">A deterministic engine that turns an idea into a buildable hardware project.</p>
+  <div class="card"><h2>How a design is made</h2><ol><li><b>Requirements</b>: capabilities, counts, power source, runtime, budget and size from your words or picture.</li><li><b>Parts</b>: a microcontroller that can actually drive everything (pins and buses checked), then peripherals scored on cost, fit, power and size, with alternatives.</li><li><b>Wiring</b>: every pin assigned, buses shared, level shifters and grounds added, electrical rules checked.</li><li><b>Power</b>: battery sized from the energy budget, charger, protection and regulators.</li><li><b>Mechanics</b>: boards packed into an enclosure with lid, mounts and windows; printable meshes for every part.</li><li><b>Guide and firmware</b>: fabricate, wire, bring up and assemble, with starter code from the real pin map.</li></ol></div>
+  <div class="card"><h2>Honest limits</h2><ul><li>Catalog prices are illustrative unless a sourcing provider is connected.</li><li>Photos need a vision model to be understood; drawings and outlines work offline.</li><li>Payments are simulated on this server.</li></ul><div class="row"><a class="btn" href="/faq">Read the FAQ</a><a class="btn" href="/community">Browse the community</a></div></div>
+  <div class="card"><h2>Contact</h2><form id="lead" class="row"><label for="leademail" style="margin:0">Email</label><input type="email" id="leademail" required placeholder="you@example.com" style="max-width:260px"/><button class="btn">Keep me posted</button></form><p class="small muted" id="leadout"></p></div>`;
+  $('lead').onsubmit=async e=>{e.preventDefault();try{await api('/api/contact-leads',{email:$('leademail').value,source:'about'});$('leadout').textContent='Thanks, we will be in touch.';}catch(err){$('leadout').textContent='Please check the email address and try again.';}};}
+// ---------------------------------------------------------------- account
+async function account(){document.title='Account · Hardware Blueprint';
+  $('page').innerHTML='<h1>Account</h1><p class="muted">Loading…</p>';
+  let a;try{a=await api('/api/account');}catch(e){$('page').innerHTML='<h1>Account</h1><p class="err">Could not load your account. Refresh to try again.</p>';return;}
+  $('page').innerHTML=`<h1>Account</h1><p class="lead">Signed in as <b>${esc(a.userId)}</b> · ${esc(a.plan)} plan · ${a.projects} project(s)</p>
+  <div class="card"><h2>Profile</h2><form id="prof"><label for="uname">Username (3–20 lowercase letters, digits or _)</label><div class="row"><input type="text" id="uname" value="${esc(a.username||'')}" style="max-width:280px" autocomplete="username"/><button type="button" class="btn" id="autoname">Suggest one</button></div>
+  <label for="bio">Bio (up to 280 characters)</label><textarea id="bio" maxlength="280">${esc(a.bio||'')}</textarea>
+  <label for="color">Profile colour</label><input type="color" id="color" value="${esc(a.profileColor||'#4f8ef7')}"/>
+  <div class="row" style="margin-top:12px"><button class="btn primary">Save profile</button><span class="small" id="profout"></span></div></form></div>
+  <div class="card"><h2>Email preferences</h2><form id="prefs">${Object.entries(a.emailPreferences).map(([k,v])=>`<label style="display:flex;gap:8px;align-items:center;color:var(--text);font-size:14px"><input type="checkbox" name="${esc(k)}" ${v?'checked':''}/> ${esc({marketing:'News and offers',productUpdates:'Product updates',projectActivity:'Activity on my projects'}[k]||k)}</label>`).join('')}
+  <div class="row" style="margin-top:10px"><button class="btn">Save preferences</button><span class="small" id="prefout"></span></div></form></div>
+  <div class="card"><h2>Credits</h2><p>${a.credits.unlimited?'Unlimited designs on your plan.':`${a.credits.weekly_credits_remaining} design(s) left this week.`} <a href="/pricing">Plans and CAD credits</a></p></div>`;
+  $('autoname').onclick=async()=>{try{const p=await api('/api/auto-username',{});$('uname').value=p.username;}catch(e){toast('Could not suggest a name: '+e.message);}};
+  $('prof').onsubmit=async e=>{e.preventDefault();const out=$('profout');try{if($('uname').value.trim()&&$('uname').value.trim()!==a.username)await api('/api/set-username',{username:$('uname').value});await api('/api/set-bio',{bio:$('bio').value});await api('/api/set-profile-color',{color:$('color').value});out.className='small ok';out.textContent='Saved';}
+    catch(err){out.className='small err';out.textContent=err.code==='invalid_username'||err.code==='username_taken'?'That username is not available or not valid. Try another.':'Could not save: '+err.message;}};
+  $('prefs').onsubmit=async e=>{e.preventDefault();const body={};$('prefs').querySelectorAll('input[type=checkbox]').forEach(c=>body[c.name]=c.checked);try{await api('/api/email-preferences',body);$('prefout').className='small ok';$('prefout').textContent='Saved';}catch(err){$('prefout').textContent='Could not save: '+err.message;}};
+}
+// ---------------------------------------------------------------- invitations / share links
+async function redeem(title,url,what){document.title=title+' · Hardware Blueprint';const token=new URLSearchParams(location.hash.slice(1)).get('token');
+  $('page').innerHTML=`<h1>${esc(title)}</h1><div class="card" id="box"><p class="muted">Checking the ${what}…</p></div>`;
+  if(!token){$('box').innerHTML=`<p>This ${what} has no token. Ask the project owner to send it again.</p>`;return;}
+  try{const r=await api(url,{token});$('box').innerHTML=`<p class="ok">You joined the project as <b>${esc(r.role)}</b>.</p><a class="btn primary" href="/p/${esc(r.projectId)}">Open the project</a>`;}
+  catch(e){const msg={invitation_invalid:'This invitation is not valid.',invitation_expired:'This invitation has expired.',share_link_invalid:'This share link is not valid.',share_link_expired:'This share link has expired.',collaborator_limit_reached:'This project already has the maximum number of collaborators.'}[e.code]||('It could not be used: '+e.message);
+    $('box').innerHTML=`<p class="err">${esc(msg)}</p><p class="small muted">Ask the project owner for a new ${what}.</p>`;}}
+function invitation(){redeem('Project invitation','/api/project-invitations/accept','invitation');}
+function join(){redeem('Join a project','/api/share-links/redeem','share link');}
+})();
+</script>
+</body>
+</html>

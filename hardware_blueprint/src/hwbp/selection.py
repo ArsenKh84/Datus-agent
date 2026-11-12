@@ -73,6 +73,7 @@ class Need:
     quantity: int = 1
     require: set[str] = field(default_factory=set)  # extra capabilities the part MUST have
     prefer: set[str] = field(default_factory=set)  # capabilities that earn a fit bonus
+    avoid: set[str] = field(default_factory=set)  # capabilities to rule out while any other candidate remains
 
 
 def plan_needs(req: Requirements) -> list[Need]:
@@ -95,6 +96,13 @@ def plan_needs(req: Requirements) -> list[Need]:
                 need.prefer.add("low_power")
             if req.size_class == "large" or "display.touch" in caps:
                 need.prefer.add("display.large")
+            frac = (req.form_factor or {}).get("displayFraction")  # drawn display window / front area
+            if frac and frac >= 0.2:  # a window covering a fifth of the front cannot hold a 0.96" OLED
+                need.prefer.add("display.large")
+                need.avoid.add("display.small")
+            elif frac and frac <= 0.08:
+                need.prefer.add("display.small")
+                need.avoid.add("display.large")
         if cap == "actuate.servo" and ("robustness" in req.priorities or req.size_class == "large"):
             need.prefer.add("high_torque")
         if cap == "actuate.stepper" and ("precision" in req.priorities or req.size_class == "large"):
@@ -239,6 +247,9 @@ def candidates_for(need: Need, catalog: Catalog, req: Requirements | None = None
         cands = [p for p in cands if p.id not in req.exclude]
     if need.require:
         cands = [p for p in cands if need.require <= set(p.capabilities)]
+    if need.avoid:
+        kept = [p for p in cands if not need.avoid & set(p.capabilities)]
+        cands = kept or cands
     # A technology the user named explicitly ("radar", "e-paper", "oled") is a hard filter when some
     # candidates match it and others don't — the user asked for that technology, not just the function.
     kws = {x[3:] for x in need.prefer if x.startswith("kw:")}

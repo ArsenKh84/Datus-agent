@@ -397,6 +397,7 @@ class Community:
             for k in (
                 "token",
                 "publishedProjectId",
+                "ownerId",
                 "projectName",
                 "projectDescription",
                 "nodeCount",

@@ -14,10 +14,11 @@ from urllib.parse import quote_plus
 from fastapi import Body, Depends, FastAPI, HTTPException, Query, Response, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
-from hwbp.cad import CREDIT_BUNDLES
+from hwbp.cad import CREDIT_BUNDLES, cad_eligible
 from hwbp.enrichment import CatalogSourcing, enrich_node
 from hwbp.export import FILE_KINDS, export_cad, export_file, export_zip, render_viewer
 from hwbp.ideas import apply_descriptions, generate_ideas, refresh_part_descriptions, substep_detail, suggested_prompts
+from hwbp.image import FUNCTION_QUESTION_ID, analyze_picture, compose_prompt, function_options
 from hwbp.layout import enriched_wiring_layout, render_svg
 from hwbp.mech import apply_joints, derive_joints, enrich_mechanical, explode_layout, heal_mechanical, solve_layout
 from hwbp.models import Node, ProjectContent
@@ -38,6 +39,10 @@ def register(app: FastAPI, st, run_async: bool = True, vision=None) -> None:  # 
 
     def save_content(pid: str, content: ProjectContent) -> int:
         return st.projects.save(pid, content, st.projects.get(pid).revision).revision
+
+    def with_author(entry: dict) -> dict:
+        prof = st.accounts.get(entry.get("ownerId") or DEFAULT_USER)
+        return {**entry, "author": {"username": prof.username or prof.user_id, "profileColor": prof.profile_color}}
 
     # ================================================================== generation runs: follow-ups & images
     @app.post("/api/generation-input-images")
@@ -85,6 +90,13 @@ def register(app: FastAPI, st, run_async: bool = True, vision=None) -> None:  # 
             qid = qa.get("id") or by_text.get(qa.get("question", ""))
             if qid:
                 answers[qid] = str(qa.get("answer"))
+        if run.status == "waiting_for_input" and not (answers.get(FUNCTION_QUESTION_ID) or "").strip():
+            raise HTTPException(422, {"error": "answer_required", "message": "Say what the device should do."})
+        if (answers.get(FUNCTION_QUESTION_ID) or "").strip() and (
+            run.status == "waiting_for_input" or not run.project_id
+        ):
+            run.prompt = compose_prompt(answers[FUNCTION_QUESTION_ID], run.detected)
+            run.questions = [q for q in run.questions if q.get("id") != FUNCTION_QUESTION_ID]
         return rerun(run, answers)
 
     @app.post("/api/generation-runs/{run_id}/retry")
@@ -92,9 +104,45 @@ def register(app: FastAPI, st, run_async: bool = True, vision=None) -> None:  # 
         run = _run_or_404(run_id)
         if body.get("revision") is not None and int(body["revision"]) != run.revision:
             raise HTTPException(409, {"error": "stale_revision", "currentRevision": run.revision})
+        if not run.prompt:  # picture-only run still waiting for "what should it do?"
+            raise HTTPException(422, {"error": "answer_required", "message": "Say what the device should do."})
         return rerun(run, None)
 
+    @app.post("/api/input-images/{image_id}/analysis")
+    def image_analysis(image_id: str) -> dict:
+        """Offline picture analysis shown before generating (what the picture says, and what it cannot say)."""
+        stored = _svc(st.images.get, image_id)
+        try:
+            det = analyze_picture(stored["bytes"])
+        except ValueError as e:
+            raise HTTPException(422, {"error": "unreadable_image", "message": str(e)}) from e
+        return {"detected": det, "functionOptions": function_options(det), "visionModel": vision is not None}
+
     # ================================================================== projects
+    @app.get("/api/projects/{pid}/meta")
+    def project_meta(pid: str, user: str = Depends(current_user)) -> dict:
+        """What the project page needs about the viewer: role, author, publication state."""
+        p = _project(st, pid)
+        owner = st.accounts.get(p.owner_id or DEFAULT_USER)
+        pub = next((e for e in st.community.published.values() if e["publishedProjectId"] == pid), None)
+        return {"role": st.collab.role(pid, user), "version": p.revision,
+                "author": {"username": owner.username or owner.user_id, "profileColor": owner.profile_color},
+                "published": {"token": pub["token"], "url": f"/s/{pub['token']}", "starCount": pub["starCount"]}
+                if pub else None}  # fmt: skip
+
+    @app.get("/api/projects/{pid}/cad-jobs")
+    def project_cad_jobs(pid: str) -> dict:
+        """CAD-eligible parts and the latest job per part (the Mech sidebar's 'CAD n/N' column)."""
+        c = _project(st, pid).content
+        latest: dict[str, dict] = {}
+        for job in sorted(st.cad.jobs.values(), key=lambda j: j.created_at):
+            if job.project_id == pid:
+                latest[job.node_id] = job.public()
+        eligible = [n.id for n in cad_eligible(c)]
+        done = sum(1 for nid in eligible if latest.get(nid, {}).get("status") == "succeeded")
+        return {"eligible": eligible, "done": done, "jobs": latest,
+                "wallet": {"balance": st.wallet.balance, "unlimited": st.wallet.unlimited}}  # fmt: skip
+
     @app.get("/api/projects")
     def my_projects(user: str = Depends(current_user)) -> dict:
         out = []
@@ -329,7 +377,9 @@ def register(app: FastAPI, st, run_async: bool = True, vision=None) -> None:  # 
     def community(
         page: int = 0, limit: int = Query(24, ge=1, le=100), sort: str = "trending", q: str | None = None
     ) -> dict:
-        return _svc(st.community.list, page, limit, sort, q)
+        out = _svc(st.community.list, page, limit, sort, q)
+        out["projects"] = [with_author(e) for e in out["projects"]]
+        return out
 
     @app.get("/api/community/suggest")
     def community_suggest(q: str, limit: int = 8) -> dict:
@@ -341,11 +391,11 @@ def register(app: FastAPI, st, run_async: bool = True, vision=None) -> None:  # 
 
     @app.get("/api/community/starred")
     def starred(user: str = Depends(current_user)) -> dict:
-        return {"projects": st.community.starred(user)}
+        return {"projects": [with_author(e) for e in st.community.starred(user)]}
 
     @app.get("/api/trending")
     def trending(limit: int = Query(4, ge=1, le=50)) -> list:
-        return st.community.list(0, limit, "trending")["projects"]
+        return [with_author(e) for e in st.community.list(0, limit, "trending")["projects"]]
 
     @app.get("/api/stats")
     def stats() -> dict:
@@ -663,6 +713,16 @@ def register(app: FastAPI, st, run_async: bool = True, vision=None) -> None:  # 
         from importlib.resources import files
 
         return files("hwbp").joinpath("viewer/studio.html").read_text(encoding="utf-8")
+
+    def site_page() -> str:
+        from importlib.resources import files
+
+        return files("hwbp").joinpath("viewer/site.html").read_text(encoding="utf-8")
+
+    for path in ("/community", "/projects", "/pricing", "/faq", "/about", "/account", "/invitations", "/join"):
+        app.add_api_route(
+            path, site_page, methods=["GET"], response_class=HTMLResponse, name=f"page{path.replace('/', '_')}"
+        )
 
     @app.get("/p/{pid}", response_class=HTMLResponse)
     def project_page(pid: str) -> str:

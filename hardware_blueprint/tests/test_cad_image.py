@@ -208,8 +208,8 @@ def test_extrude_handles_clockwise_input():
 
 def test_brief_from_image():
     png = encode_png_gray(L_SHAPE)
-    with pytest.raises(ValueError):
-        brief_from_image(png)
+    b = brief_from_image(png)  # nothing says what the device does: ask, with suggestions
+    assert b.needs_function and len(b.function_options) == 4 and b.source == "picture" and b.prompt == ""
     b = brief_from_image(png, user_prompt="desk lamp")
     assert b.source == "user" and b.silhouette.aspect == pytest.approx(1.0, rel=0.05)
 
@@ -228,7 +228,9 @@ def test_brief_from_image():
 
     b = brief_from_image(png, vision=Vision())
     assert b.source == "vision" and b.name == "Lamp" and b.size_mm["w"] == 80
+    detected = b.analysis.pop("detected")
     assert b.analysis == {"summary": "an L-shaped lamp", "components": ["LED strip"], "uncertainties": ["power source"]}
+    assert detected["kind"] == "drawing" and detected["capabilities"] == []  # vision wins; offline result kept
     b = brief_from_image(b"P2\n1 1\n255\n255\n", user_prompt="blank")
     assert b.silhouette is None
 

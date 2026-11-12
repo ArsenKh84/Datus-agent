@@ -35,6 +35,28 @@ PNG = encode_png_gray(L_SHAPE)
 PNG_B64 = base64.b64encode(PNG).decode()
 
 
+def _device_drawing() -> bytes:
+    """Outline drawing like the studio DRAW pad: device border, a screen rectangle and three round buttons."""
+    import math
+
+    c = [[1.0] * 480 for _ in range(360)]
+    for x0, y0, x1, y1, t in ((40, 40, 440, 320, 10), (80, 70, 300, 230, 8)):
+        for y in range(y0, y1):
+            for xx in range(x0, x1):
+                if xx < x0 + t or xx >= x1 - t or y < y0 + t or y >= y1 - t:
+                    c[y][xx] = 0.05
+    for cx in (120, 200, 280):
+        for y in range(255, 295):
+            for xx in range(cx - 20, cx + 20):
+                if 10 <= math.hypot(xx - cx, y - 275) <= 16:
+                    c[y][xx] = 0.05
+    return encode_png_gray(c)
+
+
+DEVICE_PNG = _device_drawing()
+DEVICE_B64 = base64.b64encode(DEVICE_PNG).decode()
+
+
 @dataclass
 class Item:
     area: str
@@ -199,16 +221,62 @@ not_applicable(
 )
 
 
-@item("Picture", "Picture input → blueprint (UPLOAD IMAGE)", "image.brief_from_image + inputImages on runs")
+@item(
+    "Picture",
+    "Picture input → blueprint (UPLOAD IMAGE), picture only",
+    "image.analyze_picture → 'what should it do?' question (device_function) → run continues",
+)
 def _(x: Ctx) -> str:
-    r = x.c.post(
-        "/api/generation-runs",
-        json={"prompt": "desk clock with display", "inputImages": [{"mime": "image/png", "data": PNG_B64}]},
-    ).json()
-    return ok(
-        r["projectData"]["requirements"]["form_factor"]["aspect"] > 0,
-        f"form factor {r['projectData']['requirements']['form_factor']}",
-    )
+    run = x.c.post("/api/generation-runs", json={"inputImages": [{"mime": "image/png", "data": DEVICE_B64}]}).json()
+    assert run["status"] == "waiting_for_input", run["status"]
+    q = run["questionRounds"][0]["questions"][0]
+    assert q["id"] == "device_function" and len(q["options"]) == 4, q
+    done = x.c.post(f"/api/generation-runs/{run['id']}/questions",
+                    json={"revision": run["revision"], "qa": [{"id": "device_function", "answer": q["options"][1]}]}).json()  # fmt: skip
+    req = done["projectData"]["requirements"]
+    return ok(done["status"] == "completed" and "ui.display" in req["capabilities"] and req["counts"]["input.button"] == 3,
+              f"asked → '{q['options'][1][:38]}…' → display + 3 buttons")  # fmt: skip
+
+
+@item(
+    "Picture",
+    "Picture parts read offline (drawn screen window / buttons / slots; window size picks the display)",
+    "image.analyze_picture, form_factor.displayFraction → selection avoid/prefer",
+)
+def _(x: Ctx) -> str:
+    from hwbp.image import analyze_picture
+
+    a = analyze_picture(DEVICE_PNG)
+    run = x.c.post("/api/generation-runs",
+                   json={"prompt": "weather station", "inputImages": [{"mime": "image/png", "data": DEVICE_B64}]}).json()  # fmt: skip
+    disp = next(n for n in run["projectData"]["nodes"] if n["type"] == "display")
+    return ok(a["buttonCount"] == 3 and a["displayFraction"] > 0.2 and "0.96" not in (disp["productName"] or ""),
+              f"{a['summary'][-46:]} → {disp['productName'][:22]}")  # fmt: skip
+
+
+@item(
+    "Picture",
+    "Photo → blueprint with a vision model (UPLOAD IMAGE of a real device)",
+    "vision.ClaudeVision (Claude Messages API, structured JSON; offline fallback on errors)",
+)
+def _(x: Ctx) -> str:
+    import anthropic
+    import httpx2
+
+    from hwbp.vision import ClaudeVision
+
+    brief = {"name": "Pocket Weather", "prompt": "Handheld weather station with an OLED display and a battery",
+             "summary": "small box with a screen", "components": ["OLED"], "uncertainties": [], "features": [],
+             "approxSizeMm": None, "materials": [], "confidence": 0.8}  # fmt: skip
+    reply = {"id": "m", "type": "message", "role": "assistant", "model": "claude-opus-5-5", "stop_reason": "end_turn",
+             "stop_sequence": None, "usage": {"input_tokens": 1, "output_tokens": 1},
+             "content": [{"type": "text", "text": json.dumps(brief)}]}  # fmt: skip
+    client = anthropic.Anthropic(api_key="test", max_retries=0, http_client=anthropic.DefaultHttpxClient(
+        transport=httpx2.MockTransport(lambda r: httpx2.Response(200, json=reply))))  # fmt: skip
+    c = TestClient(create_app(run_async=False, vision=ClaudeVision(client=client)))
+    run = c.post("/api/generation-runs", json={"inputImages": [{"mime": "image/png", "data": DEVICE_B64}]}).json()
+    return ok(run["status"] == "completed" and run["projectData"]["requirements"]["prompt"] == brief["prompt"],
+              "SDK request → JSON brief → completed run (mocked transport; live calls need a key)")  # fmt: skip
 
 
 @item(
@@ -334,7 +402,7 @@ def _(x: Ctx) -> str:
 @item(
     "AI actions",
     "generateProjectImage / image rerolls (project hero image)",
-    "render.project_image, /image.svg, /image-rerolls",
+    "render.project_image, /image.svg, /image-rerolls (isometric line render, not a photoreal image model)",
 )
 def _(x: Ctx) -> str:
     rr = x.c.post(f"/api/projects/{x.pid}/image-rerolls").json()
@@ -888,6 +956,258 @@ def _(x: Ctx) -> str:
     tok = x.c.post("/api/publish", json={"projectId": x.pid}).json()["token"]
     h = x.c.get(f"/s/{tok}").text
     return ok('id="star"' in h and 'id="copy"' in h, "buttons present")
+
+
+# =====================================================================================================================
+# 9. Page controls (what a user sees and clicks). Each check: the control is on the served page AND its endpoint works.
+#    Every control is also clicked in a real browser by scripts/e2e_ui.js (results table at the end of PARITY.md).
+# =====================================================================================================================
+def _page(x: Ctx, path: str) -> str:
+    r = x.c.get(path)
+    assert r.status_code == 200, f"{path} → {r.status_code}"
+    return r.text
+
+
+@item(
+    "Pages",
+    "Site navigation: Studio, Community, Pricing, FAQ, About, Account (+ My projects)",
+    "viewer/site.html + studio.html",
+)
+def _(x: Ctx) -> str:
+    pages = ["/", "/community", "/projects", "/pricing", "/faq", "/about", "/account"]
+    return ok(all('nav class="links"' in _page(x, u) for u in pages), f"{len(pages)} pages, shared nav")
+
+
+@item(
+    "Pages",
+    "Community page: card grid (image, parts, stars, age, author), search + suggestions, sort, see more",
+    "site.html community()",
+)
+def _(x: Ctx) -> str:
+    x.c.post("/api/publish", json={"projectId": x.pid})
+    feed = x.c.get("/api/community?sort=new&q=plant").json()
+    h = _page(x, "/community")
+    return ok(feed["projects"] and "author" in feed["projects"][0] and "/api/community/suggest" in h and 'id="more"' in h,
+              f"{feed['total']} match 'plant', author {feed['projects'][0]['author']['username']}")  # fmt: skip
+
+
+@item(
+    "Pages",
+    "My projects page (+ starred projects, unfinished generations to resume)",
+    "site.html projects() + studio ?run=",
+)
+def _(x: Ctx) -> str:
+    h = _page(x, "/projects")
+    mine = x.c.get("/api/projects").json()["projects"]
+    return ok(mine and "/api/community/starred" in h and "recoverable=true" in h and "?run=" in h and "?run=" in h,
+              f"{len(mine)} project(s) listed")  # fmt: skip
+
+
+@item(
+    "Pages",
+    "Pricing page: plans + CAD credit bundles (purchase)",
+    "site.html pricing() → /api/billing/plan, /api/cad-wallet/purchase",
+)
+def _(x: Ctx) -> str:
+    h = _page(x, "/pricing")
+    b0 = x.c.get("/api/cad-wallet").json()["balance"]
+    b1 = x.c.post("/api/cad-wallet/purchase", json={"bundle": "small"}).json()["balance"]
+    return ok(
+        "data-bundle" in h and "data-plan" in h and b1 == b0 + 20,
+        f"{b0} → {b1} credits (simulated, no payment provider)",
+    )
+
+
+@item("Pages", "Account page: username (suggest), bio, colour, email preferences, credits", "site.html account()")
+def _(x: Ctx) -> str:
+    h = _page(x, "/account")
+    name = x.c.post("/api/auto-username").json()["username"]
+    return ok(
+        all(i in h for i in ('id="autoname"', 'id="bio"', 'id="color"', 'id="prefs"')) and name, f"suggested {name}"
+    )
+
+
+@item(
+    "Pages",
+    "Invitation / share-link landing pages (/invitations#token, /join#token)",
+    "site.html invitation() / join()",
+)
+def _(x: Ctx) -> str:
+    inv = x.c.post(f"/api/projects/{x.pid}/invitations", json={"email": "pal@example.com", "role": "viewer"}).json()
+    acc = x.c.post("/api/project-invitations/accept", json={"token": inv["token"]}, headers={"X-User-Id": "pal"}).json()
+    h = _page(x, "/invitations") + _page(x, "/join")
+    return ok(
+        acc["role"] == "viewer" and "/api/project-invitations/accept" in h and "/api/share-links/redeem" in h,
+        "accepted as viewer",
+    )
+
+
+@item("Pages", "Project header: back to Community, author, Star with count, Copy", "viewer.html headerActions()")
+def _(x: Ctx) -> str:
+    tok = x.c.post("/api/publish", json={"projectId": x.pid}).json()["token"]
+    h = _page(x, f"/s/{tok}")
+    pub = x.c.get(f"/api/published?token={tok}").json()
+    return ok(
+        'id="back"' in h and 'id="starn"' in h and 'id="author"' in h and "starCount" in pub, f"★ {pub['starCount']}"
+    )
+
+
+@item(
+    "Pages",
+    "Info tab: hero image + new image, tags, AI summary, author, cost tree category → type → part (collapsible)",
+    "viewer.html renderInfo()",
+)
+def _(x: Ctx) -> str:
+    h = _page(x, f"/p/{x.pid}")
+    rr = x.c.post(f"/api/projects/{x.pid}/image-rerolls").json()
+    return ok(
+        all(i in h for i in ('id="reroll"', 'id="costtree"', "aria-expanded", "Summary")) and rr["url"],
+        "reroll + 3-level tree",
+    )
+
+
+@item("Pages", "Notes on the project page (shared, conflict-safe)", "viewer.html setupNotes() → /readme")
+def _(x: Ctx) -> str:
+    v = x.c.put(
+        f"/api/projects/{x.pid}/readme",
+        json={"text": "hello", "baseVersion": x.c.get(f"/api/projects/{x.pid}/readme").json()["version"]},
+    ).json()
+    return ok('id="notes"' in _page(x, f"/p/{x.pid}") and v["version"] >= 1, f"version {v['version']}")
+
+
+@item(
+    "Pages",
+    "Parts tab: description + print-settings line, total estimated cost row, build-quantity pricing",
+    "viewer.html renderParts()",
+)
+def _(x: Ctx) -> str:
+    h = _page(x, f"/p/{x.pid}")
+    b = x.c.get(f"/api/projects/{x.pid}/bom?buildQty=10").json()
+    return ok(
+        'id="ptotal"' in h and 'id="bqty"' in h and "printSettings" in h and b["buildQty"] == 10,
+        f"10 builds ${b['totalUsd']}",
+    )
+
+
+@item(
+    "Pages",
+    "Wiring tab: electrical-parts sidebar (by category, with counts), focus a part",
+    "viewer.html setupWiring()",
+)
+def _(x: Ctx) -> str:
+    h = _page(x, f"/p/{x.pid}")
+    return ok("Electrical parts" in h and "data-focus" in h and 'id="wside"' in h, "sidebar + focus")
+
+
+@item(
+    "Pages",
+    "Mech tab: per-part eye toggles, category toggles with counts, reset view, full screen, X/Y/Z dimension axes",
+    "viewer.html setupMech()",
+)
+def _(x: Ctx) -> str:
+    h = _page(x, f"/p/{x.pid}")
+    return ok(
+        all(i in h for i in ("data-eye", 'id="mhome"', 'id="mfull"', 'id="axislabels"', "data-type")),
+        "controls present",
+    )
+
+
+@item(
+    "Pages",
+    "Mech tab: per-part CAD status, generate, files menu, 'CAD n/N' counter, out-of-credits link",
+    "viewer.html setupCad() → /api/projects/:id/cad-jobs",
+)
+def _(x: Ctx) -> str:
+    s0 = x.c.get(f"/api/projects/{x.pid}/cad-jobs").json()
+    fresh = next(n for n in s0["eligible"] if s0["jobs"].get(n, {}).get("status") != "succeeded")
+    x.c.post("/api/cad-jobs/part", json={"projectId": x.pid, "nodeId": fresh})
+    s1 = x.c.get(f"/api/projects/{x.pid}/cad-jobs").json()
+    return ok(
+        s1["done"] == s0["done"] + 1 and "/pricing" in _page(x, f"/p/{x.pid}"),
+        f"CAD {s0['done']}/{len(s0['eligible'])} → {s1['done']}",
+    )
+
+
+@item(
+    "Pages",
+    "Instructions tab: n/N done, per-step counters, tool chips, part cards, View details",
+    "viewer.html renderGuide()",
+)
+def _(x: Ctx) -> str:
+    h = _page(x, f"/p/{x.pid}")
+    return ok(all(i in h for i in ('id="gdone"', "data-scount", "pcards", "data-more", "chips")), "controls present")
+
+
+@item(
+    "Pages",
+    "Share dialog: publish / unpublish, invite by email, share links, members & roles",
+    "viewer.html openShare()",
+)
+def _(x: Ctx) -> str:
+    link = x.c.post(f"/api/projects/{x.pid}/share-links", json={"role": "editor"}).json()
+    h = _page(x, f"/p/{x.pid}")
+    return ok(
+        all(i in h for i in ('id="pubbtn"', 'id="invform"', 'id="mklink"', "data-member"))
+        and link["url"].startswith("/join"),
+        "dialog + link",
+    )
+
+
+@item("Pages", "History dialog: versions + restore", "viewer.html openHistory()")
+def _(x: Ctx) -> str:
+    v = x.c.get(f"/api/projects/{x.pid}/versions").json()["versions"]
+    return ok(
+        'id="histbtn"' in _page(x, f"/p/{x.pid}") and "data-restore" in _page(x, f"/p/{x.pid}") and len(v) >= 1,
+        f"{len(v)} version(s)",
+    )
+
+
+@item(
+    "Pages",
+    "Export menu: bundle, CAD STL/STEP/GLB/OBJ, BOM CSV, wiring SVGs, guide, firmware, JSON",
+    "viewer.html headerActions()",
+)
+def _(x: Ctx) -> str:
+    h = _page(x, f"/p/{x.pid}")
+    r = x.c.post("/api/export/cad", json={"projectId": x.pid, "formats": ["step"]})
+    return ok(
+        'id="exportmenu"' in h and "data-cad" in h and "data-file" in h and r.status_code == 200,
+        f"STEP zip {len(r.content)} B",
+    )
+
+
+@item("Pages", "Chat: suggested prompt chips, clear chat", "viewer.html loadChips() / chatclear")
+def _(x: Ctx) -> str:
+    sp = x.c.get(f"/api/projects/{x.pid}/suggested-prompts").json()
+    return ok('id="pchips"' in _page(x, f"/p/{x.pid}") and sp["edit"], sp["edit"][0])
+
+
+@item("Pages", "Live updates: 'project changed' banner over the project WebSocket", "viewer.html liveEvents()")
+def _(x: Ctx) -> str:
+    with x.c.websocket_connect(f"/api/projects/{x.pid}/events") as ws:
+        ws.send_json({"type": "authenticate"})
+        first = ws.receive_json()
+    return ok('id="banner"' in _page(x, f"/p/{x.pid}") and first["type"] == "ready", f"ready v{first['version']}")
+
+
+@item(
+    "Pages",
+    "Studio: icon toolbar (idea / upload / draw), rotating examples, picture analysis preview, picture-only question, resume",
+    "studio.html",
+)
+def _(x: Ctx) -> str:
+    h = _page(x, "/")
+    img = x.c.post("/api/generation-input-images", json={"image": DEVICE_B64, "mime": "image/png"}).json()
+    a = x.c.post(f"/api/input-images/{img['id']}/analysis").json()
+    return ok(all(i in h for i in ('id="ideabtn"', 'for="file"', 'id="drawbtn"', "askFunction", "?run=", "/analysis")) and a["detected"]["buttonCount"] == 3,
+              "preview: " + ", ".join(a["detected"]["components"]))  # fmt: skip
+
+
+not_applicable(
+    "Pages",
+    "Photoreal AI product renders and the 'Powered by ForgeCAD' CAD backend",
+    "needs a hosted image-generation model / a third-party CAD service; hwbp renders isometric views and builds CAD itself",
+)
 
 
 # =====================================================================================================================

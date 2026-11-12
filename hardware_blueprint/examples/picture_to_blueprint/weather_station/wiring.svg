@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1608 756" width="1608" height="756" font-family="Inter, Raleway, system-ui, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="arr-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#52ae59"/></marker><marker id="arr-power" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f5c94e"/></marker><marker id="arr-ground" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9d9f9e"/></marker></defs>
+<g transform="translate(24.0,64.0)">
+<path d="M1360.0,125.6 L1290.0,125.6 L1290.0,297.6 L1220.0,297.6" fill="none" stroke="#52ae59" stroke-width="2.0" marker-end="url(#arr-data)"/>
+<rect x="1267.4" y="203.6" width="45.2" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="1290.0" y="214.1" font-size="9" font-weight="700" text-anchor="middle" fill="#52ae59">i2c ×2</text>
+<path d="M200.0,39.6 L320.0,39.6 L320.0,284.0 L440.0,284.0 L610.0,284.0 L610.0,284.0 L780.0,284.0 L900.0,284.0 L900.0,313.4 L1020.0,313.4" fill="none" stroke="#52ae59" stroke-width="2.0" marker-end="url(#arr-data)"/>
+<rect x="593.6" y="276.0" width="32.8" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="610.0" y="286.5" font-size="9" font-weight="700" text-anchor="middle" fill="#52ae59">gpio</text>
+<path d="M200.0,211.6 L320.0,211.6 L320.0,324.0 L440.0,324.0 L610.0,324.0 L610.0,324.0 L780.0,324.0 L900.0,324.0 L900.0,329.3 L1020.0,329.3" fill="none" stroke="#52ae59" stroke-width="2.0" marker-end="url(#arr-data)"/>
+<rect x="593.6" y="316.0" width="32.8" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="610.0" y="326.5" font-size="9" font-weight="700" text-anchor="middle" fill="#52ae59">gpio</text>
+<path d="M200.0,383.6 L320.0,383.6 L320.0,410.0 L440.0,410.0 L610.0,410.0 L610.0,410.0 L780.0,410.0 L900.0,410.0 L900.0,345.1 L1020.0,345.1" fill="none" stroke="#52ae59" stroke-width="2.0" marker-end="url(#arr-data)"/>
+<rect x="593.6" y="402.0" width="32.8" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="610.0" y="412.5" font-size="9" font-weight="700" text-anchor="middle" fill="#52ae59">gpio</text>
+<path d="M1220.0,297.6 L1290.0,297.6 L1290.0,297.6 L1360.0,297.6" fill="none" stroke="#52ae59" stroke-width="2.0" marker-end="url(#arr-data)"/>
+<rect x="1239.5" y="289.6" width="101.0" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="1290.0" y="300.1" font-size="9" font-weight="700" text-anchor="middle" fill="#52ae59">spi ×3, gpio ×3</text>
+<path d="M200.0,575.6 L270.0,575.6 L270.0,575.6 L340.0,575.6" fill="none" stroke="#f5c94e" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-power)"/>
+<rect x="253.6" y="567.6" width="32.8" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="270.0" y="578.1" font-size="9" font-weight="700" text-anchor="middle" fill="#f5c94e">3.7V</text>
+<path d="M540.0,575.6 L610.0,575.6 L610.0,575.6 L680.0,575.6" fill="none" stroke="#f5c94e" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-power)"/>
+<rect x="593.6" y="567.6" width="32.8" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="610.0" y="578.1" font-size="9" font-weight="700" text-anchor="middle" fill="#f5c94e">3.7V</text>
+<path d="M880.0,575.6 L950.0,575.6 L950.0,361.0 L1020.0,361.0" fill="none" stroke="#f5c94e" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-power)"/>
+<rect x="939.8" y="460.3" width="20.4" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="950.0" y="470.8" font-size="9" font-weight="700" text-anchor="middle" fill="#f5c94e">5V</text>
+<path d="M1220.0,313.4 L1290.0,313.4 L1290.0,125.6 L1360.0,125.6" fill="none" stroke="#f5c94e" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-power)"/>
+<rect x="1273.6" y="211.5" width="32.8" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="1290.0" y="222.0" font-size="9" font-weight="700" text-anchor="middle" fill="#f5c94e">3.3V</text>
+<path d="M1220.0,329.3 L1290.0,329.3 L1290.0,313.4 L1360.0,313.4" fill="none" stroke="#f5c94e" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-power)"/>
+<rect x="1273.6" y="313.4" width="32.8" height="14" rx="3" fill="#ffffff" stroke="#d4d5d4"/>
+<text x="1290.0" y="323.9" font-size="9" font-weight="700" text-anchor="middle" fill="#f5c94e">3.3V</text>
+<g data-node="main_controller"><rect x="1020.0" y="258.0" width="200.0" height="132.0" rx="8" fill="#fafafa" stroke="#06abab" stroke-width="1.5"/>
+<text x="1030.0" y="276.0" font-size="9" font-weight="700" fill="#06abab">MCU</text>
+<text x="1030.0" y="294.0" font-size="13" font-weight="600" fill="#131313">Main Controller</text>
+<text x="1030.0" y="310.0" font-size="10" fill="#131313" opacity="0.6">ESP32-C3 SuperMini</text>
+<rect x="1030.0" y="324.0" width="42" height="18" rx="9" fill="none" stroke="#06abab" opacity="0.8"/>
+<text x="1051.0" y="336.5" font-size="8.5" text-anchor="middle" fill="#06abab">GPIO0</text>
+<rect x="1076.0" y="324.0" width="42" height="18" rx="9" fill="none" stroke="#06abab" opacity="0.8"/>
+<text x="1097.0" y="336.5" font-size="8.5" text-anchor="middle" fill="#06abab">GPIO1</text>
+<rect x="1122.0" y="324.0" width="42" height="18" rx="9" fill="none" stroke="#06abab" opacity="0.8"/>
+<text x="1143.0" y="336.5" font-size="8.5" text-anchor="middle" fill="#06abab">GPIO3</text>
+<rect x="1168.0" y="324.0" width="42" height="18" rx="9" fill="none" stroke="#06abab" opacity="0.8"/>
+<text x="1189.0" y="336.5" font-size="8.5" text-anchor="middle" fill="#06abab">GPIO4</text>
+<rect x="1030.0" y="348.0" width="42" height="18" rx="9" fill="none" stroke="#06abab" opacity="0.8"/>
+<text x="1051.0" y="360.5" font-size="8.5" text-anchor="middle" fill="#06abab">GPIO6</text>
+<rect x="1076.0" y="348.0" width="42" height="18" rx="9" fill="none" stroke="#06abab" opacity="0.8"/>
+<text x="1097.0" y="360.5" font-size="8.5" text-anchor="middle" fill="#06abab">GPIO7</text>
+<rect x="1122.0" y="348.0" width="42" height="18" rx="9" fill="none" stroke="#06abab" opacity="0.8"/>
+<text x="1143.0" y="360.5" font-size="8.5" text-anchor="middle" fill="#06abab">GPIO8</text>
+<rect x="1168.0" y="348.0" width="42" height="18" rx="9" fill="none" stroke="#06abab" opacity="0.8"/>
+<text x="1189.0" y="360.5" font-size="8.5" text-anchor="middle" fill="#06abab">GPIO9</text>
+</g>
+<g data-node="bme280_temp_humidity_pressure"><rect x="1360.0" y="86.0" width="200.0" height="132.0" rx="8" fill="#fafafa" stroke="#418dbf" stroke-width="1.5"/>
+<text x="1370.0" y="104.0" font-size="9" font-weight="700" fill="#418dbf">SENSOR</text>
+<text x="1370.0" y="122.0" font-size="13" font-weight="600" fill="#131313">BME280 Temp/Humidity/Press</text>
+<text x="1370.0" y="138.0" font-size="10" fill="#131313" opacity="0.6">BME280 Temp/Humidity/Pressure</text>
+<rect x="1370.0" y="152.0" width="42" height="18" rx="9" fill="none" stroke="#418dbf" opacity="0.8"/>
+<text x="1391.0" y="164.5" font-size="8.5" text-anchor="middle" fill="#418dbf">SDA</text>
+<rect x="1416.0" y="152.0" width="42" height="18" rx="9" fill="none" stroke="#418dbf" opacity="0.8"/>
+<text x="1437.0" y="164.5" font-size="8.5" text-anchor="middle" fill="#418dbf">SCL</text>
+<rect x="1462.0" y="152.0" width="42" height="18" rx="9" fill="none" stroke="#418dbf" opacity="0.8"/>
+<text x="1483.0" y="164.5" font-size="8.5" text-anchor="middle" fill="#418dbf">VIN</text>
+<rect x="1508.0" y="152.0" width="42" height="18" rx="9" fill="none" stroke="#418dbf" opacity="0.8"/>
+<text x="1529.0" y="164.5" font-size="8.5" text-anchor="middle" fill="#418dbf">GND</text>
+</g>
+<g data-node="button_1"><rect x="0.0" y="0.0" width="200.0" height="132.0" rx="8" fill="#fafafa" stroke="#7253ad" stroke-width="1.5"/>
+<text x="10.0" y="18.0" font-size="9" font-weight="700" fill="#7253ad">MODULE</text>
+<text x="10.0" y="36.0" font-size="13" font-weight="600" fill="#131313">Button 1</text>
+<text x="10.0" y="52.0" font-size="10" fill="#131313" opacity="0.6">12 mm Tactile Push Button</text>
+<rect x="10.0" y="66.0" width="42" height="18" rx="9" fill="none" stroke="#7253ad" opacity="0.8"/>
+<text x="31.0" y="78.5" font-size="8.5" text-anchor="middle" fill="#7253ad">SW</text>
+<rect x="56.0" y="66.0" width="42" height="18" rx="9" fill="none" stroke="#7253ad" opacity="0.8"/>
+<text x="77.0" y="78.5" font-size="8.5" text-anchor="middle" fill="#7253ad">GND</text>
+</g>
+<g data-node="button_2"><rect x="0.0" y="172.0" width="200.0" height="132.0" rx="8" fill="#fafafa" stroke="#7253ad" stroke-width="1.5"/>
+<text x="10.0" y="190.0" font-size="9" font-weight="700" fill="#7253ad">MODULE</text>
+<text x="10.0" y="208.0" font-size="13" font-weight="600" fill="#131313">Button 2</text>
+<text x="10.0" y="224.0" font-size="10" fill="#131313" opacity="0.6">12 mm Tactile Push Button</text>
+<rect x="10.0" y="238.0" width="42" height="18" rx="9" fill="none" stroke="#7253ad" opacity="0.8"/>
+<text x="31.0" y="250.5" font-size="8.5" text-anchor="middle" fill="#7253ad">SW</text>
+<rect x="56.0" y="238.0" width="42" height="18" rx="9" fill="none" stroke="#7253ad" opacity="0.8"/>
+<text x="77.0" y="250.5" font-size="8.5" text-anchor="middle" fill="#7253ad">GND</text>
+</g>
+<g data-node="button_3"><rect x="0.0" y="344.0" width="200.0" height="132.0" rx="8" fill="#fafafa" stroke="#7253ad" stroke-width="1.5"/>
+<text x="10.0" y="362.0" font-size="9" font-weight="700" fill="#7253ad">MODULE</text>
+<text x="10.0" y="380.0" font-size="13" font-weight="600" fill="#131313">Button 3</text>
+<text x="10.0" y="396.0" font-size="10" fill="#131313" opacity="0.6">12 mm Tactile Push Button</text>
+<rect x="10.0" y="410.0" width="42" height="18" rx="9" fill="none" stroke="#7253ad" opacity="0.8"/>
+<text x="31.0" y="422.5" font-size="8.5" text-anchor="middle" fill="#7253ad">SW</text>
+<rect x="56.0" y="410.0" width="42" height="18" rx="9" fill="none" stroke="#7253ad" opacity="0.8"/>
+<text x="77.0" y="422.5" font-size="8.5" text-anchor="middle" fill="#7253ad">GND</text>
+</g>
+<g data-node="display"><rect x="1360.0" y="258.0" width="200.0" height="132.0" rx="8" fill="#fafafa" stroke="#db87a1" stroke-width="1.5"/>
+<text x="1370.0" y="276.0" font-size="9" font-weight="700" fill="#db87a1">DISPLAY</text>
+<text x="1370.0" y="294.0" font-size="13" font-weight="600" fill="#131313">Display</text>
+<text x="1370.0" y="310.0" font-size="10" fill="#131313" opacity="0.6">2.9in e-Paper 296x128 (SPI)</text>
+<rect x="1370.0" y="324.0" width="42" height="18" rx="9" fill="none" stroke="#db87a1" opacity="0.8"/>
+<text x="1391.0" y="336.5" font-size="8.5" text-anchor="middle" fill="#db87a1">DIN</text>
+<rect x="1416.0" y="324.0" width="42" height="18" rx="9" fill="none" stroke="#db87a1" opacity="0.8"/>
+<text x="1437.0" y="336.5" font-size="8.5" text-anchor="middle" fill="#db87a1">CLK</text>
+<rect x="1462.0" y="324.0" width="42" height="18" rx="9" fill="none" stroke="#db87a1" opacity="0.8"/>
+<text x="1483.0" y="336.5" font-size="8.5" text-anchor="middle" fill="#db87a1">CS</text>
+<rect x="1508.0" y="324.0" width="42" height="18" rx="9" fill="none" stroke="#db87a1" opacity="0.8"/>
+<text x="1529.0" y="336.5" font-size="8.5" text-anchor="middle" fill="#db87a1">DC</text>
+<rect x="1370.0" y="348.0" width="42" height="18" rx="9" fill="none" stroke="#db87a1" opacity="0.8"/>
+<text x="1391.0" y="360.5" font-size="8.5" text-anchor="middle" fill="#db87a1">RST</text>
+<rect x="1416.0" y="348.0" width="42" height="18" rx="9" fill="none" stroke="#db87a1" opacity="0.8"/>
+<text x="1437.0" y="360.5" font-size="8.5" text-anchor="middle" fill="#db87a1">BUSY</text>
+<rect x="1462.0" y="348.0" width="42" height="18" rx="9" fill="none" stroke="#db87a1" opacity="0.8"/>
+<text x="1483.0" y="360.5" font-size="8.5" text-anchor="middle" fill="#db87a1">VCC</text>
+<rect x="1508.0" y="348.0" width="42" height="18" rx="9" fill="none" stroke="#db87a1" opacity="0.8"/>
+<text x="1529.0" y="360.5" font-size="8.5" text-anchor="middle" fill="#db87a1">GND</text>
+</g>
+<g data-node="battery"><rect x="0.0" y="536.0" width="200.0" height="132.0" rx="8" fill="#fafafa" stroke="#f5c94e" stroke-width="1.5"/>
+<text x="10.0" y="554.0" font-size="9" font-weight="700" fill="#f5c94e">POWER</text>
+<text x="10.0" y="572.0" font-size="13" font-weight="600" fill="#131313">Battery</text>
+<text x="10.0" y="588.0" font-size="10" fill="#131313" opacity="0.6">LiPo 3.7 V 1000 mAh (503450, P</text>
+<rect x="10.0" y="602.0" width="42" height="18" rx="9" fill="none" stroke="#f5c94e" opacity="0.8"/>
+<text x="31.0" y="614.5" font-size="8.5" text-anchor="middle" fill="#f5c94e">B+</text>
+<rect x="56.0" y="602.0" width="42" height="18" rx="9" fill="none" stroke="#f5c94e" opacity="0.8"/>
+<text x="77.0" y="614.5" font-size="8.5" text-anchor="middle" fill="#f5c94e">B-</text>
+<rect x="102.0" y="602.0" width="42" height="18" rx="9" fill="none" stroke="#f5c94e" opacity="0.8"/>
+<text x="123.0" y="614.5" font-size="8.5" text-anchor="middle" fill="#f5c94e">GND</text>
+</g>
+<g data-node="charger"><rect x="340.0" y="536.0" width="200.0" height="132.0" rx="8" fill="#fafafa" stroke="#f5c94e" stroke-width="1.5"/>
+<text x="350.0" y="554.0" font-size="9" font-weight="700" fill="#f5c94e">POWER</text>
+<text x="350.0" y="572.0" font-size="13" font-weight="600" fill="#131313">USB-C Charger + Protection</text>
+<text x="350.0" y="588.0" font-size="10" fill="#131313" opacity="0.6">TP4056 USB-C Li-ion Charger + </text>
+<rect x="350.0" y="602.0" width="42" height="18" rx="9" fill="none" stroke="#f5c94e" opacity="0.8"/>
+<text x="371.0" y="614.5" font-size="8.5" text-anchor="middle" fill="#f5c94e">IN+</text>
+<rect x="396.0" y="602.0" width="42" height="18" rx="9" fill="none" stroke="#f5c94e" opacity="0.8"/>
+<text x="417.0" y="614.5" font-size="8.5" text-anchor="middle" fill="#f5c94e">OUT+</text>
+<rect x="442.0" y="602.0" width="42" height="18" rx="9" fill="none" stroke="#f5c94e" opacity="0.8"/>
+<text x="463.0" y="614.5" font-size="8.5" text-anchor="middle" fill="#f5c94e">GND</text>
+</g>
+<g data-node="reg_5v"><rect x="680.0" y="536.0" width="200.0" height="132.0" rx="8" fill="#fafafa" stroke="#f5c94e" stroke-width="1.5"/>
+<text x="690.0" y="554.0" font-size="9" font-weight="700" fill="#f5c94e">POWER</text>
+<text x="690.0" y="572.0" font-size="13" font-weight="600" fill="#131313">5V Boost</text>
+<text x="690.0" y="588.0" font-size="10" fill="#131313" opacity="0.6">MT3608 Boost Converter (set 5 </text>
+<rect x="690.0" y="602.0" width="42" height="18" rx="9" fill="none" stroke="#f5c94e" opacity="0.8"/>
+<text x="711.0" y="614.5" font-size="8.5" text-anchor="middle" fill="#f5c94e">VIN</text>
+<rect x="736.0" y="602.0" width="42" height="18" rx="9" fill="none" stroke="#f5c94e" opacity="0.8"/>
+<text x="757.0" y="614.5" font-size="8.5" text-anchor="middle" fill="#f5c94e">VOUT</text>
+<rect x="782.0" y="602.0" width="42" height="18" rx="9" fill="none" stroke="#f5c94e" opacity="0.8"/>
+<text x="803.0" y="614.5" font-size="8.5" text-anchor="middle" fill="#f5c94e">GND</text>
+</g>
+<line x1="0" y1="-28" x2="28" y2="-28" stroke="#52ae59" stroke-width="2.0"/>
+<text x="34" y="-24" font-size="10" fill="#131313">DATA</text>
+<line x1="110" y1="-28" x2="138" y2="-28" stroke="#f5c94e" stroke-width="1.5" stroke-dasharray="4 4"/>
+<text x="144" y="-24" font-size="10" fill="#131313">POWER</text>
+<line x1="220" y1="-28" x2="248" y2="-28" stroke="#9d9f9e" stroke-width="1.0" stroke-dasharray="2 3"/>
+<text x="254" y="-24" font-size="10" fill="#131313">GROUND</text>
+</g></svg>

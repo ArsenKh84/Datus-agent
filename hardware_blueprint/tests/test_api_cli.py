@@ -201,10 +201,11 @@ def test_cli(tmp_path, capsys):
             assert target.read_bytes().startswith(magic)
 
 
-def test_picture_only_run_needs_vision_model():
+def test_picture_only_run_asks_what_the_device_does():
     c = TestClient(create_app(run_async=False))
     r = c.post("/api/generation-runs", json={"inputImages": [{"mime": "image/png", "data": PNG_B64}]})
-    assert r.status_code == 400 and "vision model" in r.json()["detail"]
+    assert r.status_code == 200 and r.json()["status"] == "waiting_for_input"
+    assert r.json()["questionRounds"][0]["questions"][0]["id"] == "device_function"
 
     class Vision:
         def describe(self, image, mime, instruction):

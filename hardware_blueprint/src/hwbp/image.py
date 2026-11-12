@@ -10,9 +10,10 @@ decoded natively):
                 relief   : height map from brightness (lithophane / embossed panel)
                 revolve  : lathe the silhouette's half-width profile (vases, knobs, bottles)
 
-Picture -> blueprint: a ``VisionModel`` (any multimodal LLM) turns the image into a requirements prompt
-following ``VISION_PROMPT``; the silhouette analysis supplies the device form factor (outline + aspect)
-that the mechanical stage uses for the enclosure footprint.
+Picture -> blueprint: the silhouette supplies the device form factor (outline + aspect) for the enclosure;
+``analyze_picture`` reads front-panel parts from drawings/silhouettes (display window, buttons, slots, knobs);
+a ``VisionModel`` (e.g. ``hwbp.vision.ClaudeVision``) turns any photo into a requirements prompt following
+``VISION_PROMPT``. With neither a prompt nor a vision model, the user is asked what the device should do.
 """
 
 from __future__ import annotations
@@ -45,7 +46,10 @@ def decode(data: bytes) -> Image:
         from PIL import Image as PILImage  # type: ignore[import-not-found]
     except ImportError as e:
         raise ValueError("unsupported image format (PNG/PGM/PPM built in; install Pillow for JPEG/WebP)") from e
-    img = PILImage.open(io.BytesIO(data)).convert("LA")
+    try:
+        img = PILImage.open(io.BytesIO(data)).convert("LA")
+    except Exception as e:  # noqa: BLE001 - Pillow raises several types for undecodable input
+        raise ValueError(f"unsupported or corrupt image ({type(e).__name__})") from e
     w, h = img.size
     px = list(img.getdata())
     gray = [[px[y * w + x][0] / 255 for x in range(w)] for y in range(h)]
@@ -218,18 +222,46 @@ def otsu_threshold(img: Image) -> float:
     return ((thr + thr_hi) / 2) / 255
 
 
+def _uses_alpha(img: Image) -> bool:
+    return bool(img.alpha) and any(a < 0.5 for row in img.alpha for a in row)
+
+
+def foreground_mask(img: Image) -> list[list[bool]]:
+    """Every foreground pixel: alpha if the image has transparency, else Otsu with border-majority polarity."""
+    if _uses_alpha(img):
+        return [[a >= 0.5 for a in row] for row in img.alpha]
+    t = otsu_threshold(img)
+    dark = [[v <= t for v in row] for row in img.gray]
+    border = [dark[0][x] for x in range(img.width)] + [dark[-1][x] for x in range(img.width)]
+    border += [dark[y][0] for y in range(img.height)] + [dark[y][-1] for y in range(img.height)]
+    bg_dark = sum(border) > len(border) / 2
+    return [[(not d) if bg_dark else d for d in row] for row in dark]
+
+
 def object_mask(img: Image) -> list[list[bool]]:
-    """Foreground mask: alpha if the image has transparency, else Otsu with border-majority polarity."""
-    if img.alpha and any(a < 0.5 for row in img.alpha for a in row):
-        mask = [[a >= 0.5 for a in row] for row in img.alpha]
-    else:
-        t = otsu_threshold(img)
-        dark = [[v <= t for v in row] for row in img.gray]
-        border = [dark[0][x] for x in range(img.width)] + [dark[-1][x] for x in range(img.width)]
-        border += [dark[y][0] for y in range(img.height)] + [dark[y][-1] for y in range(img.height)]
-        bg_dark = sum(border) > len(border) / 2
-        mask = [[(not d) if bg_dark else d for d in row] for row in dark]
-    return largest_component(mask)
+    """Foreground mask of the main object (largest connected component)."""
+    return largest_component(foreground_mask(img))
+
+
+def components(mask: list[list[bool]]) -> list[list[tuple[int, int]]]:
+    """4-connected components of a mask as pixel lists."""
+    h, w = len(mask), len(mask[0])
+    seen = [[False] * w for _ in range(h)]
+    out = []
+    for y in range(h):
+        for x in range(w):
+            if mask[y][x] and not seen[y][x]:
+                comp, stack = [], [(x, y)]
+                seen[y][x] = True
+                while stack:
+                    cx, cy = stack.pop()
+                    comp.append((cx, cy))
+                    for nx, ny in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
+                        if 0 <= nx < w and 0 <= ny < h and mask[ny][nx] and not seen[ny][nx]:
+                            seen[ny][nx] = True
+                            stack.append((nx, ny))
+                out.append(comp)
+    return out
 
 
 def largest_component(mask: list[list[bool]]) -> list[list[bool]]:
@@ -647,9 +679,199 @@ Return ONLY JSON: {"name": str, "prompt": str, "summary": str, "components": [st
 form factor, in one paragraph suitable for a hardware design engine. "components" lists parts you can see or infer;
 "uncertainties" lists what cannot be determined from the image (ask the user about these)."""
 
+FUNCTION_QUESTION_ID = "device_function"
+
 
 class VisionModel(Protocol):
     def describe(self, image: bytes, mime: str, instruction: str) -> dict: ...
+
+
+def _bbox(pixels: list[tuple[int, int]]) -> tuple[int, int, int, int]:
+    xs, ys = [p[0] for p in pixels], [p[1] for p in pixels]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def _filled(pixels: list[tuple[int, int]], w: int, h: int) -> list[tuple[int, int]]:
+    """A drawn stroke plus every pixel it encloses (a drawn rectangle becomes a solid rectangle)."""
+    m = [[False] * w for _ in range(h)]
+    for x, y in pixels:
+        m[y][x] = True
+    inner = [(x, y) for hm in find_holes(m, min_px=1) for y, row in enumerate(hm) for x, v in enumerate(row) if v]
+    return pixels + inner
+
+
+def _shape_of(area: int, bw: int, bh: int) -> tuple[str, float, float]:
+    rect = area / float(bw * bh)
+    aspect = bw / float(bh)
+    if rect >= 0.86:
+        return "rectangular", rect, aspect
+    if 0.68 <= rect < 0.86 and 0.75 <= aspect <= 1.33:
+        return "round", rect, aspect
+    return "freeform", rect, aspect
+
+
+def analyze_picture(data: bytes, width_mm: float = 100.0, max_side: int = 256) -> dict:
+    """Offline reading of a drawing or silhouette: outline shape + front-panel features.
+
+    Finds the main outline, then every region inside it (cut-outs of a solid silhouette, or shapes drawn inside an
+    outline drawing) and classifies each by size, rectangularity and aspect: a large rectangle is a display window,
+    small squares/circles are push buttons, long thin rectangles are slots (USB / vents), medium circles are knobs,
+    speaker grilles or lenses (left as a question). Photos are flagged: their regions come from lighting, not
+    geometry, so they are reported but never turned into parts (that needs a ``VisionModel``).
+    """
+    img = downsample(decode(data), max_side)
+    fg = foreground_mask(img)
+    comps = components(fg)
+    if not comps:
+        raise ValueError("no object found in the image")
+    w, h = img.width, img.height
+    outer = max(comps, key=len)
+    om = [[False] * w for _ in range(h)]
+    for x, y in outer:
+        om[y][x] = True
+    x0, y0, x1, y1 = _bbox(outer)
+    bw, bh = x1 - x0 + 1, y1 - y0 + 1
+    scale = width_mm / bw
+    holes = [[(x, y) for y, row in enumerate(hm) for x, v in enumerate(row) if v] for hm in find_holes(om)]
+    filled_area = len(outer) + sum(len(hh) for hh in holes)
+    dominant = [hh for hh in holes if len(hh) > 0.5 * filled_area]
+    values = [v for row in img.gray for v in row]
+    binary = sum(1 for v in values if v < 0.2 or v > 0.8) / len(values)
+    kind = "silhouette" if _uses_alpha(img) else ("drawing" if binary >= 0.85 else "photo")
+
+    regions = [hh for hh in holes if not any(hh is d for d in dominant)]
+    min_px = max(4, int(0.002 * filled_area))
+    for c in comps:
+        if c is outer or len(c) < min_px:
+            continue
+        cx0, cy0, cx1, cy1 = _bbox(c)
+        if cx0 < x0 or cy0 < y0 or cx1 > x1 or cy1 > y1:  # stray marks outside the device outline
+            continue
+        regions.append(_filled(c, w, h))
+
+    features: list[dict] = []
+    display_taken = False
+    for r in sorted(regions, key=len, reverse=True):
+        rx0, ry0, rx1, ry1 = _bbox(r)
+        rw, rh = rx1 - rx0 + 1, ry1 - ry0 + 1
+        shape, _, aspect = _shape_of(len(r), rw, rh)
+        frac = len(r) / filled_area
+        if shape == "rectangular" and frac >= 0.06 and 1 / 3.5 <= aspect <= 3.5 and not display_taken:
+            fkind, display_taken = "display_window", True
+        elif shape == "round" and frac >= 0.2:
+            fkind = "round_window"
+        elif shape == "round" and frac >= 0.03:
+            fkind = "round_opening"
+        elif frac < 0.03 and (shape == "round" or (shape == "rectangular" and 0.5 <= aspect <= 2)):
+            fkind = "button"
+        elif shape == "rectangular" and (aspect > 3 or aspect < 1 / 3):
+            fkind = "slot"
+        else:
+            fkind = "opening"
+        cx, cy = (rx0 + rx1) / 2 - (x0 + x1) / 2, (ry0 + ry1) / 2 - (y0 + y1) / 2
+        features.append({
+            "kind": fkind, "shape": shape, "sizeMm": [round(rw * scale, 1), round(rh * scale, 1)],
+            "centerMm": [round(cx * scale, 1), round(cy * scale, 1)], "areaFraction": round(frac, 4),
+        })  # fmt: skip
+
+    shape, _, aspect = _shape_of(filled_area, bw, bh)
+    trusted = kind != "photo"
+    display = next((f for f in features if f["kind"] == "display_window"), None)
+    buttons = sum(1 for f in features if f["kind"] == "button")
+    caps: list[str] = []
+    found: list[str] = []
+    unsure: list[str] = []
+    if display:
+        found.append(f"display window ≈ {display['sizeMm'][0]:g} × {display['sizeMm'][1]:g} mm "
+                     f"({display['areaFraction'] * 100:.0f}% of the front)")  # fmt: skip
+        caps.append("display")
+    if buttons:
+        found.append(f"{buttons} push button{'s' if buttons > 1 else ''}")
+        caps.append("buttons")
+    for f in features:
+        d = f"{f['sizeMm'][0]:g} × {f['sizeMm'][1]:g} mm"
+        if f["kind"] == "round_opening":
+            unsure.append(f"round opening ≈ {d}: rotary knob, speaker grille or camera lens?")
+        elif f["kind"] == "round_window":
+            unsure.append(f"large round window ≈ {d}: round display or speaker?")
+        elif f["kind"] == "slot":
+            unsure.append(f"slot ≈ {d}: USB port, vent or card slot?")
+    if not trusted:
+        unsure.insert(0, "This looks like a photo: offline analysis only uses its outline. Configure a vision "
+                         "model (e.g. ANTHROPIC_API_KEY) to recognise the parts in it.")  # fmt: skip
+        caps, features = [], []  # photo regions come from lighting, not geometry
+    size = {"w": round(bw * scale, 1), "d": round(bh * scale, 1)}
+    noun = {"drawing": "drawing", "photo": "photo", "silhouette": "silhouette"}[kind]
+    summary = f"{shape.capitalize()} outline ({noun}), {size['w']:g} × {size['d']:g} mm at the assumed width"
+    if trusted and found:
+        summary += " with " + " and ".join(found)
+    return {
+        "kind": kind, "shape": shape, "aspect": round(aspect, 3), "outlineDrawing": bool(dominant), "sizeMm": size,
+        "features": features, "capabilities": caps, "buttonCount": buttons if trusted else 0,
+        "displayFraction": display["areaFraction"] if (display and trusted) else None,
+        "components": found if trusted else [], "uncertainties": unsure, "summary": summary,
+    }  # fmt: skip
+
+
+def feature_phrase(det: dict | None) -> str:
+    """Prompt words for the parts a drawing shows (empty for photos / nothing found)."""
+    if not det or not det.get("capabilities"):
+        return ""
+    bits = []
+    if "display" in det["capabilities"]:
+        bits.append("a display")
+    n = det.get("buttonCount") or 0
+    if n:
+        bits.append(f"{n} buttons" if n > 1 else "a button")
+    return " with " + " and ".join(bits)
+
+
+def function_options(det: dict | None) -> list[str]:
+    """Device functions that fit what the picture shows (offered when nothing says what the device does)."""
+    caps = set((det or {}).get("capabilities") or [])
+    n = (det or {}).get("buttonCount") or 0
+    nb = f"{n} buttons" if n > 1 else "a button"
+    shape, aspect = (det or {}).get("shape"), float((det or {}).get("aspect") or 1.0)
+    if {"display", "buttons"} <= caps:
+        return [f"A handheld game console with a display and {nb}, battery powered",
+                f"A portable weather station with a display and {nb}",
+                f"A smart thermostat with a display and {nb}",
+                f"A handheld data logger with a display, {nb} and a temperature sensor"]  # fmt: skip
+    if "display" in caps:
+        return ["A desk clock with a display showing time and weather",
+                "A smart home dashboard with a touchscreen",
+                "An air quality monitor with a display",
+                "A plant monitor with a soil moisture sensor and a display"]  # fmt: skip
+    if "buttons" in caps:
+        return [f"A wireless remote control with {nb}, battery powered",
+                f"A USB macro keypad with {nb}",
+                "A smart doorbell with a button and a camera",
+                f"A game controller with {nb} and a joystick"]  # fmt: skip
+    if shape == "round":
+        return ["A smart speaker with a rotary knob",
+                "A desk lamp with an LED ring and a knob",
+                "A kitchen timer with a buzzer and a knob",
+                "A motion-activated night light"]  # fmt: skip
+    if aspect > 2.5 or aspect < 0.4:
+        return ["An LED light bar with a motion sensor",
+                "A smart door and window sensor",
+                "A wall-mounted temperature and humidity logger",
+                "A plant grow light with a timer"]  # fmt: skip
+    return ["A temperature and humidity monitor with WiFi",
+            "A smart plug relay controller",
+            "A GPS tracker with a battery",
+            "A motion-activated night light"]  # fmt: skip
+
+
+def compose_prompt(answer: str, det: dict | None) -> str:
+    """User's chosen/typed function + the parts the picture shows (unless already mentioned)."""
+    answer = answer.strip()
+    hint = feature_phrase(det)
+    caps = (det or {}).get("capabilities") or []
+    low = answer.lower()
+    missing = [c for c in caps if not (c == "display" and ("display" in low or "screen" in low)) and
+               not (c == "buttons" and "button" in low)]  # fmt: skip
+    return answer + (hint if hint and missing else "")
 
 
 @dataclass
@@ -659,24 +881,48 @@ class ImageBrief:
     features: list[str] = field(default_factory=list)
     size_mm: dict | None = None
     silhouette: Silhouette | None = None
-    source: str = "user"  # user | vision
-    analysis: dict = field(default_factory=dict)  # {summary, components, uncertainties} (reference imageAnalysis)
+    source: str = "user"  # user | vision | picture
+    analysis: dict = field(
+        default_factory=dict
+    )  # {summary, components, uncertainties, detected} (reference imageAnalysis)
+    detected: dict | None = None
+    needs_function: bool = False  # nothing says what the device does: ask (offline, no vision model)
+    function_options: list[str] = field(default_factory=list)
 
 
 def brief_from_image(
     data: bytes, mime: str = "image/png", user_prompt: str | None = None, vision: VisionModel | None = None
 ) -> ImageBrief:
-    """Combine an optional user prompt, an optional vision-model description and the silhouette form factor."""
+    """Combine an optional user prompt, an optional vision-model description and the offline picture analysis.
+
+    The picture always supplies the form factor (silhouette). Offline, a drawing also supplies front-panel parts
+    (display window, buttons). When neither a prompt nor a vision model says what the device *does*, the brief is
+    returned with ``needs_function`` and suggested functions to ask the user — the picture alone cannot tell.
+    """
     try:
         sil, _, _ = silhouette(data)
     except ValueError:
         sil = None
+    try:
+        det = analyze_picture(data)
+    except ValueError:
+        det = None
     desc: dict = {}
     if vision is not None:
         desc = vision.describe(data, mime, VISION_PROMPT) or {}
     prompt = " ".join(x for x in (user_prompt, desc.get("prompt")) if x).strip()
-    if not prompt:
-        raise ValueError("picture-to-blueprint needs a vision model or a text prompt describing the device's function")
     analysis = {k: desc[k] for k in ("summary", "components", "uncertainties") if k in desc}
-    return ImageBrief(prompt=prompt, name=desc.get("name"), features=list(desc.get("features") or []), size_mm=desc.get("approxSizeMm"),
-                      silhouette=sil, source="vision" if desc else "user", analysis=analysis)  # fmt: skip
+    if det:
+        analysis["detected"] = det
+        if not desc:
+            analysis.update({"summary": det["summary"], "components": det["components"],
+                             "uncertainties": det["uncertainties"]})  # fmt: skip
+    if prompt and not desc:
+        prompt = compose_prompt(prompt, det)
+    needs = not prompt
+    if needs:
+        analysis.setdefault("uncertainties", []).insert(0, "What should the device do? (the picture sets its shape)")
+    source = "vision" if desc else ("user" if user_prompt else "picture")
+    return ImageBrief(prompt=prompt, name=desc.get("name"), features=list(desc.get("features") or []),
+                      size_mm=desc.get("approxSizeMm"), silhouette=sil, source=source, analysis=analysis, detected=det,
+                      needs_function=needs, function_options=function_options(det) if needs else [])  # fmt: skip

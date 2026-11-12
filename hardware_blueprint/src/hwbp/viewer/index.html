@@ -10,186 +10,433 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff;
 --mcu:#06abab;--sensor:#418dbf;--actuator:#df663b;--power:#f5c94e;--module:#957ec2;--display:#db87a1;--structural:#6fb2fd;--enclosure:#a58be0;--mechanism:#e8a25b;--misc:#b7a26b;--printed:#bfd36a;--other:#9d9f9e}}
 :root[data-theme="dark"]{--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff;--mcu:#06abab;--sensor:#418dbf;--actuator:#df663b;--power:#f5c94e;--module:#957ec2;--display:#db87a1;--structural:#6fb2fd;--enclosure:#a58be0;--mechanism:#e8a25b;--misc:#b7a26b;--printed:#bfd36a;--other:#9d9f9e}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,sans-serif}
-header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5}
-h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.02em}nav{display:flex;gap:4px;flex-wrap:wrap}
-nav button,.btn{border:1px solid transparent;background:none;color:var(--muted);padding:6px 12px;border-radius:8px;font:600 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;min-height:32px;text-decoration:none;display:inline-flex;align-items:center}
-nav button[aria-selected="true"]{background:var(--text);color:var(--bg)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,sans-serif}
+header.top{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5}
+.titlebox{display:flex;flex-direction:column;min-width:0}.titlebox .row{display:flex;gap:10px;align-items:center}
+h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46vw}
+.back{color:var(--muted);text-decoration:none;font:600 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase}.back:hover{color:var(--text)}
+nav{display:flex;gap:2px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
+nav button,.btn{border:1px solid transparent;background:none;color:var(--muted);padding:6px 10px;border-radius:8px;font:600 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;min-height:32px;text-decoration:none;display:inline-flex;gap:6px;align-items:center}
+nav button svg,.btn svg{width:14px;height:14px;flex:none}
+nav button[aria-selected="true"]{background:var(--text);color:var(--bg)}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn{border-color:var(--line);color:var(--text)}.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn[aria-pressed="true"]{background:var(--text);color:var(--bg)}
-.actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn.ghost{border-color:transparent}.btn:disabled{opacity:.5;cursor:not-allowed}.btn.sm{min-height:26px;padding:4px 8px;font-size:11px}
+.actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 main{max-width:1200px;margin:0 auto;padding:16px}section[hidden]{display:none}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
-.tags{display:flex;flex-wrap:wrap;gap:6px}.tag{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tag{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
-td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.muted{color:var(--muted)}.small{font-size:12px}
-tr.part{cursor:pointer}tr.part:hover td{background:var(--bg)}tr.detail td{background:var(--bg)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.muted{color:var(--muted)}.small{font-size:12px}.label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+tr.part{cursor:pointer}tr.part:hover td{background:var(--bg)}tr.detail td{background:var(--bg)}tfoot td{font-weight:700;border-bottom:none}
 .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;border:1px solid currentColor}
-.sev-error{color:var(--err)}.sev-warning{color:var(--warn)}.sev-info{color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.kpi b{display:block;font-size:22px}
-.hero svg{width:100%;height:auto;display:block;border-radius:10px}
+.sev-error{color:var(--err)}.sev-warning{color:var(--warn)}.sev-info{color:var(--muted)}.ok{color:var(--ok)}.err{color:var(--err)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.kpi b{display:block;font-size:20px}
+.info-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.hero svg,.hero img{width:100%;height:auto;display:block;border-radius:10px}
+.author{display:inline-flex;gap:6px;align-items:center;font-size:13px}.avatar{width:14px;height:14px;border-radius:3px;display:inline-block}
+.tt .tr{display:grid;grid-template-columns:minmax(0,1fr) 70px 90px;gap:8px;padding:7px 8px;border-bottom:1px solid var(--line);align-items:center}
+.tt .tr.head{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.tt .tr[hidden]{display:none}
+.tt .l0{font-weight:600}.tt .l1{padding-left:26px}.tt .l2{padding-left:52px;color:var(--muted)}.tt .num{text-align:right;font-variant-numeric:tabular-nums}
+.tog{border:none;background:none;color:inherit;cursor:pointer;padding:0 4px 0 0;font:inherit;display:inline-flex;align-items:center;gap:4px;text-align:left}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}.toolbar label{font-size:12px;display:flex;gap:4px;align-items:center}
+.split{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:start}
 #wiring{overflow:hidden;position:relative;height:560px;cursor:grab;touch-action:none}#wiring svg{display:block;width:100%;height:100%}
-#mechwrap{position:relative;height:520px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}#mech{width:100%;height:100%;display:block;touch-action:none}
-#mechinfo{position:absolute;left:12px;top:12px;font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
-.tree div{padding:2px 0;font-size:13px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
-details{border-top:1px solid var(--line);padding:8px 0}summary{cursor:pointer;font-weight:600}label.step{display:inline-flex;gap:8px;align-items:flex-start}
+#mechwrap{position:relative;height:560px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}#mech{width:100%;height:100%;display:block;touch-action:none}
+#mechwrap:fullscreen{border-radius:0}
+.overlay{position:absolute;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}.overlay .btn{background:var(--surface)}
+#mechinfo{font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+#axislabels span{position:absolute;font:700 11px/1 Inter,system-ui,sans-serif;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:2px 5px;pointer-events:none;transform:translate(-50%,-50%);white-space:nowrap}
+.side .row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px;min-height:28px}.side .row .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side .row.off .name{opacity:.45}.eye{border:1px solid var(--line);background:none;border-radius:6px;width:26px;height:24px;cursor:pointer;color:var(--text);display:inline-flex;align-items:center;justify-content:center}.eye svg{width:14px;height:14px}
+.cadbtn{border:1px solid var(--line);background:none;border-radius:999px;min-width:26px;height:24px;cursor:pointer;color:var(--muted);font:600 10px/1 inherit;padding:0 6px}
+.cadbtn.done{border-color:var(--ok);color:var(--ok)}.cadbtn.busy{opacity:.6}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;flex:none}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:10px;font-size:12px}.legend label{display:flex;gap:4px;align-items:center;cursor:pointer}
+.progressbar{display:flex;justify-content:space-between;align-items:center;gap:12px}.meter{height:6px;background:var(--line);border-radius:999px;overflow:hidden;flex:1;max-width:240px}.meter i{display:block;height:100%;background:var(--ok)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.cols ul{margin:0;padding-left:18px}
+.step{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px;overflow:hidden}
+.step>.head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.step>.head b{font-size:15px}.count{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:var(--muted)}.count.full{border-color:var(--ok);color:var(--ok)}
+.sub{padding:12px 16px;border-bottom:1px solid var(--line)}.sub:last-child{border-bottom:none}.sub label.step-title{display:flex;gap:10px;align-items:flex-start;font-weight:600;cursor:pointer}
+.sub input[type=checkbox]{width:16px;height:16px;margin-top:2px}.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0 26px}.chip{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--muted)}
+.pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:10px 0 0 26px}.pcard{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:center}
+.pcard .ic{width:30px;height:30px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex:none}.pcard .ic svg{width:16px;height:16px}
+.more{margin:8px 0 0 26px}.more .btn{padding-left:0}
+details.menu{position:relative}details.menu>summary{list-style:none}details.menu>summary::-webkit-details-marker{display:none}
+details.menu .items{position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;min-width:240px;z-index:9;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+details.menu .items button,details.menu .items a{display:flex;width:100%;justify-content:space-between;border:none;background:none;color:var(--text);padding:8px 10px;border-radius:6px;font:13px/1.2 inherit;cursor:pointer;text-decoration:none}
+details.menu .items button:hover,details.menu .items a:hover{background:var(--bg)}details.menu .items .sep{border-top:1px solid var(--line);margin:4px 0}
 pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:12px}
-select,input[type=text],textarea{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:32px;font:inherit}
+select,input[type=text],input[type=email],input[type=number],textarea{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:32px;font:inherit}
+textarea{width:100%;min-height:120px;resize:vertical}
 a{color:var(--accent)}
-#chat{position:fixed;right:16px;bottom:16px;width:min(380px,calc(100vw - 32px));z-index:6}#chat .card{margin:0;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 48px)}
+dialog::backdrop{background:rgba(0,0,0,.35)}dialog .dh{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}dialog .db{padding:16px;overflow:auto;max-height:calc(100vh - 140px)}
+dialog h3{margin:0;font-size:15px}dialog h4{margin:16px 0 8px;font-size:13px}dialog .rowf{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.list .li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+#chat{position:fixed;right:16px;bottom:16px;width:min(400px,calc(100vw - 32px));z-index:6}#chat .card{margin:0;box-shadow:0 6px 24px rgba(0,0,0,.12)}
 #chatlog{max-height:300px;overflow:auto;font-size:13px}#chatlog .turn{border-top:1px solid var(--line);padding:6px 0}
-@media (max-width:640px){#mechwrap{height:380px}#wiring{height:420px}th:nth-child(4),td:nth-child(4){display:none}}
+.pchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pchips button{font-size:12px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--text);padding:4px 10px;cursor:pointer}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:13px;z-index:20;max-width:calc(100vw - 32px)}
+#banner{background:var(--bg);border-bottom:1px solid var(--line);padding:8px 16px;font-size:13px;display:flex;gap:10px;align-items:center;justify-content:center}
+@media (max-width:900px){.split{grid-template-columns:1fr}.info-top{grid-template-columns:1fr}}
+@media (max-width:640px){#mechwrap{height:380px}#wiring{height:420px}th:nth-child(4),td:nth-child(4){display:none}.cols{grid-template-columns:1fr}h1{max-width:60vw}nav{width:100%;justify-content:space-between}nav button{padding:6px 7px}nav button span{display:none}}
 </style>
 </head>
 <body>
-<header><h1 id="title">Hardware Blueprint</h1>
-<nav role="tablist" aria-label="Project views">
-<button role="tab" data-tab="info" aria-selected="true">Info</button><button role="tab" data-tab="parts">Parts</button>
-<button role="tab" data-tab="wiring">Wiring</button><button role="tab" data-tab="mech">Mech</button>
-<button role="tab" data-tab="guide">Instructions</button><button role="tab" data-tab="code">Code</button></nav>
-<div class="actions" id="headeractions"></div></header>
+<header class="top">
+  <div class="titlebox"><a class="back" id="back" href="/community" hidden>← Community</a><div class="row"><h1 id="title">Hardware Blueprint</h1><span id="author" class="author"></span></div></div>
+  <nav role="tablist" aria-label="Project views">
+    <button role="tab" data-tab="info" aria-selected="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><circle cx="6" cy="6.5" r="1.3"/><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"/></svg><span>Info</span></button>
+    <button role="tab" data-tab="parts"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4h9M5 8h9M5 12h9"/><circle cx="2.5" cy="4" r=".8"/><circle cx="2.5" cy="8" r=".8"/><circle cx="2.5" cy="12" r=".8"/></svg><span>Parts</span></button>
+    <button role="tab" data-tab="wiring"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 5h3v3h3M5 11h2"/></svg><span>Wiring</span></button>
+    <button role="tab" data-tab="mech"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.8l5.5 3.1v6.2L8 14.2l-5.5-3.1V4.9z"/><path d="M8 8l5.5-3.1M8 8v6.2M8 8L2.5 4.9"/></svg><span>Mech</span></button>
+    <button role="tab" data-tab="guide"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 1.8h5.5L12.5 5v9.2H4z"/><path d="M6 8h4.5M6 10.5h4.5"/></svg><span>Instructions</span></button>
+    <button role="tab" data-tab="code"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5"/></svg><span>Code</span></button>
+  </nav>
+  <div class="actions" id="headeractions"></div>
+</header>
+<div id="banner" hidden></div>
 <main>
 <section id="tab-info"></section>
 <section id="tab-parts" hidden></section>
-<section id="tab-wiring" hidden><div class="card"><div class="toolbar" id="wtools"></div><div id="wiring"></div></div></section>
-<section id="tab-mech" hidden><div class="toolbar" id="mtools"></div><div id="mechwrap"><canvas id="mech" aria-label="3D assembly; drag to rotate, scroll to zoom"></canvas><div id="mechinfo"></div></div><div class="card tree" id="mechtree" style="margin-top:16px"></div></section>
+<section id="tab-wiring" hidden><div class="split"><div class="card" style="margin:0"><div class="toolbar" id="wtools"></div><div id="wiring"></div></div><aside class="card side" id="wside" style="margin:0"></aside></div></section>
+<section id="tab-mech" hidden><div class="split"><div><div id="mechwrap"><canvas id="mech" aria-label="3D assembly; drag to rotate, scroll to zoom"></canvas><div id="axislabels"></div><div class="overlay" id="mtools"></div></div></div><aside class="card side" id="mechside" style="margin:0"></aside></div></section>
 <section id="tab-guide" hidden></section>
 <section id="tab-code" hidden></section>
 </main>
-<div id="chat" hidden><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b>Chat</b><button class="btn" id="chatclose" aria-label="Close chat">×</button></div>
-<div id="chatlog"></div><form id="chatform" style="display:flex;gap:6px;margin-top:8px"><input type="text" id="chatinput" placeholder="e.g. replace the display with an e-paper" aria-label="Message" style="flex:1"/><button class="btn primary">Send</button></form></div></div>
+<dialog id="dlg" aria-labelledby="dlgtitle"><div class="dh"><h3 id="dlgtitle"></h3><button class="btn ghost" id="dlgclose" aria-label="Close">✕</button></div><div class="db" id="dlgbody"></div></dialog>
+<div id="chat" hidden><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><b>Chat</b><span class="actions"><button class="btn sm" id="chatclear">Clear</button><button class="btn sm" id="chatclose" aria-label="Close chat">✕</button></span></div>
+<div id="chatlog"></div><div class="pchips" id="pchips"></div><form id="chatform" style="display:flex;gap:6px;margin-top:8px"><input type="text" id="chatinput" placeholder="e.g. replace the display with an e-paper" aria-label="Message" style="flex:1"/><button class="btn primary">Send</button></form></div></div>
+<div id="toast" role="status" hidden></div>
 <script>window.HWBP_PROJECT = /*__PROJECT__*/null; window.HWBP_MESHES = /*__MESHES__*/null; window.HWBP_EXTRAS = /*__EXTRAS__*/null; window.HWBP_API = null;</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
 const TYPE_VAR={mcu:'--mcu',sensor:'--sensor',actuator:'--actuator',power:'--power',module:'--module',display:'--display',structural:'--structural',enclosure:'--enclosure',mechanism:'--mechanism',misc:'--misc','3d_printed':'--printed',other:'--other'};
 const LABEL={mcu:'MCU',sensor:'Sensor',actuator:'Actuator',power:'Power',module:'Module',display:'Display',structural:'Structural',enclosure:'Enclosure',mechanism:'Mechanism',misc:'Misc','3d_printed':'3D Print',other:'Other'};
+const ICON={eye:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8 12.1 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>',
+  eyeoff:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2l12 12M6.5 4C7 3.7 7.5 3.5 8 3.5c4.1 0 6.5 4.5 6.5 4.5s-.7 1.3-2 2.6M4 5.5C2.4 6.8 1.5 8 1.5 8S3.9 12.5 8 12.5c.9 0 1.7-.2 2.4-.5"/></svg>',
+  home:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 7.5L8 3l5.5 4.5V13H10V9.5H6V13H2.5z"/></svg>',
+  full:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg>',
+  print:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 6V2h7v4M4.5 11H3a1 1 0 01-1-1V7a1 1 0 011-1h10a1 1 0 011 1v3a1 1 0 01-1 1h-1.5"/><path d="M4.5 9h7v5h-7z"/></svg>',
+  chip:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="8" height="8" rx="1"/><path d="M6 1.5V4M10 1.5V4M6 12v2.5M10 12v2.5M1.5 6H4M1.5 10H4M12 6h2.5M12 10h2.5"/></svg>',
+  tool:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 2a3.5 3.5 0 00-3.3 4.6L2.5 11.3a1.4 1.4 0 002 2l4.7-4.7A3.5 3.5 0 0014 5.5l-2 2-2-.5-.5-2 2-2a3.5 3.5 0 00-1-.5z"/></svg>'};
+const PRINTED=new Set(['3d_printed','enclosure','structural','mechanism']);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const color=t=>css(TYPE_VAR[t]||'--other');const money=v=>'$'+(Number(v)||0).toFixed(2);
+const $=id=>document.getElementById(id);
 const API=window.HWBP_API, X=window.HWBP_EXTRAS||{};
+const PID=API&&API.mode==='project'?API.projectId:null;
+let ROLE=null, P=null;
+const canEdit=()=>ROLE==='owner'||ROLE==='editor';
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,3800);}
 async function load(){
   if(window.HWBP_PROJECT) return window.HWBP_PROJECT;
   const src=new URLSearchParams(location.search).get('src');
   if(!src) return null; const r=await fetch(src); const d=await r.json(); return d.content||d;
 }
 function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
-async function api(path,body,method){const r=await fetch(path,{method:method||(body?'POST':'GET'),headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error((d.detail&&(d.detail.message||d.detail.error))||d.detail||r.status);return d;}
-load().then(p=>{ if(!p){document.getElementById('tab-info').innerHTML='<div class="card">Load a project with <code>?src=project.json</code>.</div>';return;} render(p); });
+async function api(path,body,method){const r=await fetch(path,{method:method||(body?'POST':'GET'),headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const ct=r.headers.get('content-type')||'';const d=ct.includes('json')?await r.json().catch(()=>({})):await r.blob();
+  if(!r.ok){const e=new Error((d.detail&&(d.detail.message||d.detail.error))||d.detail||('HTTP '+r.status));e.status=r.status;e.code=d.detail&&d.detail.error;throw e;}return d;}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
+function openDialog(title,html){$('dlgtitle').textContent=title;$('dlgbody').innerHTML=html;$('dlg').showModal();return $('dlgbody');}
+$('dlgclose').onclick=()=>$('dlg').close();
+load().then(async p=>{ if(!p){$('tab-info').innerHTML='<div class="card">Load a project with <code>?src=project.json</code>.</div>';return;}
+  P=p; if(PID){try{const m=await api(`/api/projects/${PID}/meta`);ROLE=m.role;API.meta=m;}catch(e){ROLE=null;}}
+  if(API&&API.mode==='share'){try{API.pub=await api('/api/published?token='+encodeURIComponent(API.token));}catch(e){API.pub=null;}}
+  render(p); });
+
+// ================================================================== render
 function render(p){
-  document.getElementById('title').textContent=p.projectName||'Project';
+  $('title').textContent=p.projectName||'Project';document.title=(p.projectName||'Project')+' · Hardware Blueprint';
   const nodes=p.nodes||[];
-  const ha=document.getElementById('headeractions');
+  const author=(API&&API.meta&&API.meta.author)||(API&&API.pub&&API.pub.author)||null;
+  if(author)$('author').innerHTML=`<span class="avatar" style="background:${esc(author.profileColor||'#888')}"></span>${esc(author.username)}`;
+  headerActions();
+  renderInfo(p,nodes,author);renderParts(p,nodes);setupWiring(p);renderGuide(p,nodes);
+  const fw=p.firmware||{};$('tab-code').innerHTML=Object.keys(fw).length?Object.entries(fw).map(([f,t])=>`<div class="card"><b>${esc(f)}</b><pre>${esc(t)}</pre></div>`).join(''):'<div class="card muted">No firmware in this document.</div>';
+  const tabs=[...document.querySelectorAll('nav button')];let mechInit=false;
+  function show(name){tabs.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name));document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='tab-'+name);store('hwbp:tab',name);if(name==='mech'&&!mechInit){mechInit=true;setupMech(p);}}
+  tabs.forEach(b=>b.onclick=()=>show(b.dataset.tab));show(new URLSearchParams(location.search).get('tab')||store('hwbp:tab')||'info');
+  if(PID)liveEvents();
+}
+function headerActions(){
+  const ha=$('headeractions');
   if(API&&API.mode==='share'){
-    ha.innerHTML='<button class="btn" id="star">★ Star</button><button class="btn primary" id="copy">Copy</button>';
-    document.getElementById('star').onclick=async()=>{try{const r=await api('/api/star',{token:API.token});document.getElementById('star').textContent=(r.starred?'★ Starred ':'☆ Star ')+r.starCount;}catch(e){alert('Could not star: '+e.message)}};
-    document.getElementById('copy').onclick=async()=>{try{const r=await api('/api/projects/copy',{token:API.token});location.href='/p/'+r.projectId;}catch(e){alert('Could not copy: '+e.message)}};
-  } else if(API&&API.mode==='project'){
-    ha.innerHTML='<button class="btn primary" id="openchat">Chat</button><a class="btn" href="/api/projects/'+esc(API.projectId)+'/export.zip">Export</a>';
-    document.getElementById('openchat').onclick=()=>{document.getElementById('chat').hidden=false;document.getElementById('chatinput').focus();refreshChat();};
-    document.getElementById('chatclose').onclick=()=>{document.getElementById('chat').hidden=true;};
-    document.getElementById('chatform').onsubmit=sendChat;
+    $('back').hidden=false;$('back').href='/community';
+    const n=API.pub?API.pub.starCount:0;
+    ha.innerHTML=`<button class="btn" id="star" aria-pressed="false">☆ Star <span id="starn">${n}</span></button><button class="btn primary" id="copy">Copy</button>`;
+    $('star').onclick=async()=>{try{const r=await api('/api/star',{token:API.token});$('star').firstChild.textContent=r.starred?'★ Starred ':'☆ Star ';$('star').setAttribute('aria-pressed',r.starred);$('starn').textContent=r.starCount;}catch(e){toast('Could not star this project. Try again.');}};
+    $('copy').onclick=async()=>{try{const r=await api('/api/projects/copy',{token:API.token});location.href='/p/'+r.projectId;}catch(e){toast('Could not copy the project: '+e.message);}};
+  } else if(PID){
+    $('back').hidden=false;$('back').textContent='← My projects';$('back').href='/projects';
+    const owner=ROLE==='owner';
+    ha.innerHTML=`<button class="btn primary" id="openchat">Chat</button>${owner?'<button class="btn" id="sharebtn">Share</button>':''}<button class="btn" id="histbtn">History</button>
+    <details class="menu" id="exportmenu"><summary class="btn">Export ▾</summary><div class="items" role="menu">
+      <a role="menuitem" href="/api/projects/${esc(PID)}/export.zip">Project bundle <span class="muted small">.zip</span></a>
+      <div class="sep"></div>
+      ${['stl','step','glb','obj'].map(f=>`<button role="menuitem" data-cad="${f}">CAD parts <span class="muted small">${f.toUpperCase()}</span></button>`).join('')}
+      <div class="sep"></div>
+      <a role="menuitem" href="/api/projects/${esc(PID)}/bom.csv" download>Parts list <span class="muted small">CSV</span></a>
+      ${[['wiring.svg','Wiring diagram','SVG'],['wiring_enriched.svg','Wiring, detailed','SVG'],['guide.md','Build guide','MD'],['firmware.zip','Firmware','ZIP'],['project.json','Project document','JSON']].map(([k,l,e])=>`<button role="menuitem" data-file="${k}">${l} <span class="muted small">${e}</span></button>`).join('')}
+    </div></details>`;
+    $('openchat').onclick=()=>{$('chat').hidden=false;$('chatinput').focus();refreshChat();loadChips();};
+    $('chatclose').onclick=()=>{$('chat').hidden=true;};
+    $('chatclear').onclick=async()=>{try{await api(`/api/projects/${PID}/chat/clear`,{});refreshChat();}catch(e){toast('Could not clear the chat: '+e.message);}};
+    $('chatform').onsubmit=sendChat;
+    if(owner)$('sharebtn').onclick=openShare;
+    $('histbtn').onclick=openHistory;
+    const menu=$('exportmenu');
+    menu.querySelectorAll('[data-cad]').forEach(b=>b.onclick=async()=>{menu.open=false;try{const r=await fetch('/api/export/cad',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({projectId:PID,formats:[b.dataset.cad]})});if(!r.ok)throw new Error('HTTP '+r.status);
+      download(await r.blob(),`${PID}-cad-${b.dataset.cad}.zip`);toast(`CAD export: ${r.headers.get('X-Downloaded-Count')} part file(s)`+(+r.headers.get('X-Omitted-Count')?`, ${r.headers.get('X-Omitted-Count')} without geometry`:''));}catch(e){toast('Could not export CAD: '+e.message);}});
+    menu.querySelectorAll('[data-file]').forEach(b=>b.onclick=async()=>{menu.open=false;try{const d=await api('/api/export/file',{projectId:PID,kind:b.dataset.file});download(d instanceof Blob?d:new Blob([JSON.stringify(d,null,2)]),`${PID}-${b.dataset.file}`);}catch(e){toast('Could not export: '+e.message);}});
+    document.addEventListener('click',e=>{if(!menu.contains(e.target))menu.open=false;});
+  } else {
+    ha.innerHTML='<button class="btn" id="dljson">Download JSON</button>';
+    $('dljson').onclick=()=>download(new Blob([JSON.stringify(P,null,2)],{type:'application/json'}),'project.json');
   }
-  const bom=p.bom||{};const rollup=bom.rollup||[];const pw=p.power||{};
+}
+
+// ================================================================== info
+function costTree(nodes){
+  const cats={};for(const n of nodes){const c=n.category||'electrical',t=n.type||'other';((cats[c]=cats[c]||{})[t]=cats[c][t]||[]).push(n);}
+  const sub=list=>list.reduce((a,n)=>a+(n.estimatedCost||0)*(n.quantity||1),0), cnt=list=>list.reduce((a,n)=>a+(n.quantity||1),0);
+  let rows='<div class="tr head"><span>Category</span><span class="num">Parts</span><span class="num">Cost</span></div>',all=[];
+  for(const [c,types] of Object.entries(cats)){const cl=Object.values(types).flat();all=all.concat(cl);
+    rows+=`<div class="tr l0" data-path="${esc(c)}"><button class="tog" aria-expanded="true">▾ <span style="text-transform:capitalize">${esc(c)}</span></button><span class="num">${cnt(cl)}</span><span class="num">${money(sub(cl))}</span></div>`;
+    for(const [t,list] of Object.entries(types)){
+      rows+=`<div class="tr l1" data-path="${esc(c)}/${esc(t)}"><button class="tog" aria-expanded="true">▾ <span class="dot" style="background:${color(t)}"></span>${esc(LABEL[t]||t)}</button><span class="num">${cnt(list)}</span><span class="num">${money(sub(list))}</span></div>`;
+      for(const n of list)rows+=`<div class="tr l2" data-path="${esc(c)}/${esc(t)}/${esc(n.id)}"><span>${esc(n.productName||n.name)}</span><span class="num">${n.quantity||1}</span><span class="num">${money((n.estimatedCost||0)*(n.quantity||1))}</span></div>`;}}
+  rows+=`<div class="tr l0"><span>Total</span><span class="num">${cnt(all)}</span><span class="num">${money(sub(all))}</span></div>`;
+  return `<div class="tt" role="tree" id="costtree">${rows}</div>`;
+}
+function wireTree(root){const closed=new Set();root.querySelectorAll('.tog').forEach(b=>b.onclick=()=>{const path=b.closest('.tr').dataset.path;const open=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',!open);b.firstChild.textContent=open?'▸ ':'▾ ';open?closed.add(path):closed.delete(path);
+  root.querySelectorAll('.tr[data-path]').forEach(r=>{const parts=r.dataset.path.split('/');let hide=false;for(let i=1;i<parts.length;i++)if(closed.has(parts.slice(0,i).join('/')))hide=true;r.hidden=hide;});});}
+function renderInfo(p,nodes,author){
+  const bom=p.bom||{};const pw=p.power||{};
   const issues=(p.issues||[]).map(i=>`<li><span class="badge sev-${esc(i.severity)}">${esc(i.severity)}</span> ${esc(i.message)}${i.fix?` <span class="muted">— ${esc(i.fix)}</span>`:''}</li>`).join('');
-  document.getElementById('tab-info').innerHTML=`${X.hero?`<div class="card hero">${X.hero}</div>`:''}<div class="card"><div class="tags">${(p.notes||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
-  <p>${esc(p.projectDescription||p.originalPrompt||'')}</p></div>
-  <div class="grid"><div class="card kpi"><span class="muted small">Parts</span><b>${nodes.length}</b></div>
-  <div class="card kpi"><span class="muted small">Est. cost</span><b>${money(bom.estimateTotalUsd ?? nodes.reduce((a,n)=>a+(n.estimatedCost||0)*(n.quantity||1),0))}</b></div>
-  <div class="card kpi"><span class="muted small">Power</span><b>${esc(pw.source||'—')}</b><span class="small muted">${pw.runtimeHours?('≈'+pw.runtimeHours+' h runtime'):''}</span></div>
-  <div class="card kpi"><span class="muted small">Size (mm)</span><b>${(p.mechLayout&&p.mechLayout.bbox?p.mechLayout.bbox.size.map(v=>Math.round(v)).join(' × '):'—')}</b></div></div>
-  ${rollup.length?`<div class="card"><table><thead><tr><th>Category</th><th class="num">Parts</th><th class="num">Cost</th></tr></thead><tbody>${rollup.map(c=>`<tr><td><b style="text-transform:capitalize">${esc(c.category)}</b></td><td class="num">${c.parts}</td><td class="num">${money(c.cost)}</td></tr>`+c.types.map(t=>`<tr><td>&nbsp;&nbsp;<span class="dot" style="background:${color(t.type)}"></span>${esc(LABEL[t.type]||t.type)}</td><td class="num">${t.parts}</td><td class="num">${money(t.cost)}</td></tr>`).join('')).join('')}</tbody></table></div>`:''}
+  const hero=PID?`<img id="heroimg" alt="Rendering of ${esc(p.projectName)}" src="/api/projects/${esc(PID)}/image.svg"/>`:(X.hero||'');
+  const total=bom.estimateTotalUsd ?? nodes.reduce((a,n)=>a+(n.estimatedCost||0)*(n.quantity||1),0);
+  $('tab-info').innerHTML=`<div class="info-top"><div class="card hero" style="margin:0">${hero}${PID&&canEdit()?'<div class="actions" style="margin-top:10px"><button class="btn sm" id="reroll">New image</button><span id="rerollbox" class="actions"></span></div>':''}</div>
+  <div class="card" style="margin:0"><div class="tags">${(p.notes||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+  <p class="label" style="margin-top:14px">Summary</p><p style="margin-top:0">${esc(p.projectDescription||p.originalPrompt||'')}</p>
+  <div class="grid"><div class="kpi"><span class="muted small">Parts</span><b>${nodes.length}</b></div><div class="kpi"><span class="muted small">Est. cost</span><b>${money(total)}</b></div>
+  <div class="kpi"><span class="muted small">Power</span><b>${esc(pw.source||'—')}</b><span class="small muted">${pw.runtimeHours?('≈'+pw.runtimeHours+' h runtime'):''}</span></div>
+  <div class="kpi"><span class="muted small">Size (mm)</span><b>${(p.mechLayout&&p.mechLayout.bbox?p.mechLayout.bbox.size.map(v=>Math.round(v)).join(' × '):'—')}</b></div></div></div></div>
+  <div class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h2 style="margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.04em">${esc(p.projectName||'')}</h2>${author?`<span class="author"><span class="avatar" style="background:${esc(author.profileColor||'#888')}"></span>${esc(author.username)}</span>`:''}</div>
+  <div style="margin-top:12px">${costTree(nodes)}</div></div>
   ${issues?`<div class="card"><h3 style="margin-top:0">Design review</h3><ul>${issues}</ul></div>`:''}
-  ${p.plan?`<div class="card"><h3 style="margin-top:0">Plan</h3><pre style="white-space:pre-wrap">${esc(p.plan)}</pre></div>`:''}`;
-  const types=[...new Set(nodes.map(n=>n.type))];
-  const partsEl=document.getElementById('tab-parts');
-  partsEl.innerHTML=`<div class="card"><label class="small muted" for="filter">Category</label> <select id="filter"><option value="">All (${nodes.length})</option>${types.map(t=>`<option value="${esc(t)}">${esc(LABEL[t]||t)}</option>`).join('')}</select> <span class="small muted">Click a row for specs, all offers and alternatives.</span>
-  <div style="overflow:auto"><table><thead><tr><th>Part</th><th class="num">Qty</th><th class="num">Unit</th><th>Why / source</th><th class="num">Subtotal</th></tr></thead><tbody id="partrows"></tbody></table></div></div>
+  ${p.plan?`<div class="card"><h3 style="margin-top:0">Plan</h3><pre style="white-space:pre-wrap">${esc(p.plan)}</pre></div>`:''}
+  ${PID?'<div class="card" id="notes"><h3 style="margin-top:0">Notes</h3><p class="small muted">Loading…</p></div>':''}`;
+  wireTree($('costtree'));
+  if(PID){setupNotes();if(canEdit())setupReroll();}
+}
+function setupReroll(){$('reroll').onclick=async()=>{try{const r=await api(`/api/projects/${PID}/image-rerolls`,{});
+  $('heroimg').src=r.url;$('rerollbox').innerHTML='<button class="btn sm primary" id="useimg">Use this image</button><button class="btn sm" id="keepimg">Keep current</button>';
+  $('useimg').onclick=async()=>{try{const a=await api(`/api/projects/${PID}/image-rerolls/${encodeURIComponent(r.id)}/apply`,{});if(API.meta)API.meta.version=a.version;$('heroimg').src=`/api/projects/${PID}/image.svg?v=${r.variant}`;$('rerollbox').innerHTML='';toast('Project image updated');}catch(e){toast('Could not apply the image: '+e.message);}};
+  $('keepimg').onclick=()=>{$('heroimg').src=`/api/projects/${PID}/image.svg?t=${Date.now()}`;$('rerollbox').innerHTML='';};}catch(e){toast('Could not make a new image: '+e.message);}};}
+async function setupNotes(){const box=$('notes');try{const d=await api(`/api/projects/${PID}/readme`);let base=d.version;
+  box.innerHTML=`<h3 style="margin-top:0">Notes</h3><label class="small muted" for="notestext">Shared with everyone on this project</label><textarea id="notestext" ${canEdit()?'':'readonly'}>${esc(d.text)}</textarea>
+  ${canEdit()?'<div class="actions" style="margin-top:8px"><button class="btn primary sm" id="notesave">Save notes</button><span class="small muted" id="notestate"></span></div>':''}`;
+  if(canEdit())$('notesave').onclick=async()=>{try{const r=await api(`/api/projects/${PID}/readme`,{text:$('notestext').value,baseVersion:base},'PUT');base=r.version;$('notestate').textContent='Saved · version '+r.version;}
+    catch(e){if(e.status===409){$('notestate').innerHTML='<span class="err">Someone else saved first.</span> <button class="btn sm" id="notereload">Load their version</button>';$('notereload').onclick=setupNotes;}else $('notestate').textContent='Could not save: '+e.message;}};
+  }catch(e){box.innerHTML='<h3 style="margin-top:0">Notes</h3><p class="small muted">Notes are unavailable right now.</p>';}}
+
+// ================================================================== parts
+function renderParts(p,nodes){
+  const types=[...new Set(nodes.map(n=>n.type))];const total=nodes.reduce((a,n)=>a+(n.estimatedCost||0)*(n.quantity||1),0);
+  $('tab-parts').innerHTML=`<div class="card"><div class="toolbar"><label class="small muted" for="filter">Category</label><select id="filter"><option value="">All (${nodes.length})</option>${types.map(t=>`<option value="${esc(t)}">${esc(LABEL[t]||t)} (${nodes.filter(n=>n.type===t).length})</option>`).join('')}</select><span class="small muted">Click a row for specs, every offer and alternatives.</span></div>
+  <div style="overflow:auto"><table><thead><tr><th>Part</th><th class="num">Qty</th><th class="num">Unit</th><th>Why / source</th><th class="num">Subtotal</th></tr></thead><tbody id="partrows"></tbody>
+  <tfoot><tr><td colspan="4">Total estimated cost</td><td class="num" id="ptotal">~${money(total)}</td></tr></tfoot></table></div></div>
+  ${PID?`<div class="card"><h3 style="margin-top:0">Build quantity</h3><div class="toolbar"><label for="bqty" class="small muted">Number of builds</label><input type="number" id="bqty" min="1" max="100000" value="1" style="width:110px"/><button class="btn" id="bqgo">Price builds</button><a class="btn" id="bqcsv" href="/api/projects/${esc(PID)}/bom.csv">Download CSV</a></div><div id="bqout" class="small muted">Prices use quantity breaks, minimum order quantities and pack sizes from each listing.</div></div>`:''}
   ${(p.suggestions||[]).length?`<div class="card"><h3 style="margin-top:0">Suggestions</h3><table><tbody>${p.suggestions.map(s=>`<tr><td><span class="badge">${esc(s.kind)}</span> ${esc(s.name)}<div class="small muted">${esc((s.reasons||[]).join('; '))}</div></td><td class="muted">${esc(s.nodeId||'')}</td><td class="num">${s.priceDeltaUsd!=null?(s.priceDeltaUsd>0?'+':'')+money(s.priceDeltaUsd).replace('$-','-$'):''}</td></tr>`).join('')}</tbody></table></div>`:''}`;
   const detail=n=>{const r=n.research||{};const alts=(p.suggestions||[]).filter(s=>s.nodeId===n.id);
     return `<tr class="detail"><td colspan="5"><div class="grid"><div><b class="small">Specs</b><table class="small">${(r.specs||[]).slice(0,14).map(s=>`<tr><td class="muted">${esc(s.label)}</td><td>${esc(s.value)}</td></tr>`).join('')||'<tr><td class="muted">—</td></tr>'}</table></div>
     <div><b class="small">Where to buy</b><ul class="small">${(r.sourcing||[]).map(o=>`<li>${o.url?`<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.vendor)}</a>`:esc(o.vendor)} ${esc(o.price||'')}</li>`).join('')||'<li class="muted">no listings</li>'}</ul>
     ${r.datasheetUrl?`<a class="small" href="${esc(r.datasheetUrl)}" target="_blank" rel="noopener">Datasheet</a>`:''}</div>
     <div><b class="small">Why this part</b><ul class="small">${(n.rationale||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="muted">—</li>'}</ul>${alts.length?`<b class="small">Alternatives</b><ul class="small">${alts.map(a=>`<li>${esc(a.name)} <span class="muted">${a.priceDeltaUsd!=null?(a.priceDeltaUsd>0?'+':'')+a.priceDeltaUsd.toFixed(2):''}</span></li>`).join('')}</ul>`:''}</div></div></td></tr>`;};
-  const rows=f=>nodes.filter(n=>!f||n.type===f).map(n=>{const src=(n.research&&n.research.sourcing||[]).find(o=>o.url);return `<tr class="part" data-id="${esc(n.id)}" tabindex="0"><td><span class="dot" style="background:${color(n.type)}"></span><b>${esc(n.name)}</b><div class="small muted">${esc(n.productName||n.description||'')}</div><span class="badge" style="color:${color(n.type)}">${esc(LABEL[n.type]||n.type)}</span></td>
+  const rows=f=>nodes.filter(n=>!f||n.type===f).map(n=>{const src=(n.research&&n.research.sourcing||[]).find(o=>o.url);const print=[n.material,n.printSettings].filter(Boolean).join(' · ');
+    return `<tr class="part" data-id="${esc(n.id)}" tabindex="0" aria-expanded="false"><td><span class="dot" style="background:${color(n.type)}"></span><b>${esc(n.name)}</b>
+    ${n.productName&&n.productName!==n.name?`<div class="small">${esc(n.productName)}</div>`:''}${n.description?`<div class="small muted">${esc(n.description)}</div>`:''}${print?`<div class="small muted">${esc(print)}</div>`:''}
+    <span class="badge" style="color:${color(n.type)}">${esc(LABEL[n.type]||n.type)}</span></td>
   <td class="num">${n.quantity||1}</td><td class="num">~${money(n.estimatedCost)}</td><td class="small">${esc((n.rationale||[]).slice(0,2).join('; '))}${src?`<div><a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.vendor)}${src.price?' '+esc(src.price):''}</a></div>`:''}</td><td class="num">~${money((n.estimatedCost||0)*(n.quantity||1))}</td></tr>`}).join('');
-  const tb=document.getElementById('partrows');
-  const fill=f=>{tb.innerHTML=rows(f);tb.querySelectorAll('tr.part').forEach(tr=>{const toggle=()=>{const nx=tr.nextElementSibling;if(nx&&nx.classList.contains('detail')){nx.remove();return;}tr.insertAdjacentHTML('afterend',detail(nodes.find(n=>n.id===tr.dataset.id)));};tr.onclick=e=>{if(e.target.tagName!=='A')toggle();};tr.onkeydown=e=>{if(e.key==='Enter')toggle();};});};
-  fill('');document.getElementById('filter').onchange=e=>fill(e.target.value);
-  setupWiring(p);
-  const doneKey='hwbp:'+(p.imagePromptSnapshot&&p.imagePromptSnapshot.designHash||p.projectName);const done=store(doneKey)||{};
-  const pre=p.instructionPreamble||{tools:[],assumptions:[]};const D=X.details||{};
-  document.getElementById('tab-guide').innerHTML=`<div class="card"><h3 style="margin-top:0">Tools</h3><div class="tags">${pre.tools.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><h3>Assumptions</h3><ul>${pre.assumptions.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>`+
-  (p.instructionSteps||[]).map((s,i)=>`<div class="card"><h3 style="margin-top:0">${i+1}. ${esc(s.title||s.id)}</h3>${s.subSteps.map((ss,j)=>{const d=D[ss.id];return `<details><summary><label class="step"><input type="checkbox" data-step="${esc(ss.id)}" ${done[ss.id]?'checked':''}/> ${i+1}.${j+1} ${esc(ss.title)}</label></summary><div class="small muted">Parts: ${esc((ss.partIds||[]).join(', '))}${ss.tools?' · Tools: '+esc(ss.tools.join(', ')):''}</div>${d?`<p class="small">${esc(d.summary)}</p><ol class="small">${d.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><p class="small"><b>Tip:</b> ${esc(d.tip)}</p>`:''}${API&&API.mode==='project'?`<img alt="Step illustration" loading="lazy" style="max-width:100%;border-radius:8px" src="/api/projects/${esc(API.projectId)}/steps/${esc(s.id)}/${esc(ss.id)}/image.svg"/>`:''}</details>`}).join('')}</div>`).join('');
-  document.querySelectorAll('[data-step]').forEach(cb=>cb.onchange=()=>{done[cb.dataset.step]=cb.checked;store(doneKey,done)});
-  const fw=p.firmware||{};document.getElementById('tab-code').innerHTML=Object.keys(fw).length?Object.entries(fw).map(([f,t])=>`<div class="card"><b>${esc(f)}</b><pre>${esc(t)}</pre></div>`).join(''):'<div class="card muted">No firmware in this document.</div>';
-  const tabs=[...document.querySelectorAll('nav button')];let mechInit=false;
-  function show(name){tabs.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name));document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='tab-'+name);store('hwbp:tab',name);if(name==='mech'&&!mechInit){mechInit=true;setupMech(p);}}
-  tabs.forEach(b=>b.onclick=()=>show(b.dataset.tab));show(new URLSearchParams(location.search).get('tab')||store('hwbp:tab')||'info');
+  const tb=$('partrows');
+  const fill=f=>{tb.innerHTML=rows(f);const sum=nodes.filter(n=>!f||n.type===f).reduce((a,n)=>a+(n.estimatedCost||0)*(n.quantity||1),0);$('ptotal').textContent='~'+money(sum);
+    tb.querySelectorAll('tr.part').forEach(tr=>{const toggle=()=>{const nx=tr.nextElementSibling;if(nx&&nx.classList.contains('detail')){nx.remove();tr.setAttribute('aria-expanded','false');return;}tr.insertAdjacentHTML('afterend',detail(nodes.find(n=>n.id===tr.dataset.id)));tr.setAttribute('aria-expanded','true');};tr.onclick=e=>{if(e.target.tagName!=='A')toggle();};tr.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}};});};
+  fill('');$('filter').onchange=e=>fill(e.target.value);
+  if(PID){const go=async()=>{const q=Math.max(1,+$('bqty').value||1);$('bqcsv').href=`/api/projects/${PID}/bom.csv?buildQty=${q}`;try{const b=await api(`/api/projects/${PID}/bom?buildQty=${q}`);
+    $('bqout').innerHTML=`<b>${q}</b> build(s): parts ${money(b.partsTotalUsd)} + shipping ${money(b.shippingUsd)} = <b>${money(b.totalUsd)}</b> · ${money(b.totalUsd/q)} per build`;}catch(e){$('bqout').textContent='Could not price that quantity: '+e.message;}};
+    $('bqgo').onclick=go;$('bqty').onkeydown=e=>{if(e.key==='Enter')go();};}
 }
+
+// ================================================================== wiring
 function setupWiring(p){
-  const el=document.getElementById('wiring'),tools=document.getElementById('wtools');
+  const el=$('wiring'),tools=$('wtools'),side=$('wside');
   const layouts={simple:p.wiringLayout,enriched:X.enriched};
-  if(!layouts.simple||!layouts.simple.nodes){el.innerHTML='<p class="muted">No wiring layout in this document.</p>';return;}
-  const hidden=new Set();let mode='simple';
-  const cats=[...new Set(Object.values(layouts.simple.nodeMeta||{}).map(m=>m.type))];
+  if(!layouts.simple||!layouts.simple.nodes){el.innerHTML='<p class="muted">No wiring layout in this document.</p>';side.hidden=true;return;}
+  const hidden=new Set();let mode='simple',focus=null;
+  const meta0=layouts.simple.nodeMeta||{};const cats=[...new Set(Object.values(meta0).map(m=>m.type))];
   tools.innerHTML=`<button class="btn" data-mode="simple" aria-pressed="true">Simple</button>${layouts.enriched?'<button class="btn" data-mode="enriched" aria-pressed="false">Enriched</button>':''}
   ${['data','power','ground'].map(t=>`<label><input type="checkbox" data-edge="${t}" checked/> ${t.toUpperCase()}</label>`).join('')}
-  ${cats.map(t=>`<label><input type="checkbox" data-cat="${esc(t)}" checked/><span class="dot" style="background:${color(t)}"></span>${esc(LABEL[t]||t)}</label>`).join('')}
   <button class="btn" data-zoom="in" aria-label="Zoom in">+</button><button class="btn" data-zoom="out" aria-label="Zoom out">−</button><button class="btn" data-zoom="fit">Fit</button>`;
+  const groups={};for(const [id,m] of Object.entries(meta0)){(groups[m.type]=groups[m.type]||[]).push([id,m]);}
+  side.innerHTML='<p class="label">Electrical parts</p>'+Object.entries(groups).map(([t,list])=>`<div style="margin-bottom:8px"><label class="small" style="display:flex;gap:6px;align-items:center;font-weight:600"><input type="checkbox" data-cat="${esc(t)}" checked/><span class="dot" style="background:${color(t)}"></span>${esc((LABEL[t]||t).toUpperCase())} <span class="muted">(${list.length})</span></label>
+    ${list.map(([id,m])=>`<div class="row"><button class="tog small" data-focus="${esc(id)}" style="padding-left:22px">${esc(m.name||id)}</button></div>`).join('')}</div>`).join('');
   let vb=null;
   const draw=()=>{const L=layouts[mode],meta=L.nodeMeta||{},m=24,W=L.width+2*m,H=L.height+2*m;vb=vb||[0,0,W,H];
     const st={data:[css('--ok'),2,''],power:[css('--power'),1.5,'4 4'],ground:[css('--muted'),1,'2 3']};
     const vis=id=>!hidden.has('cat:'+((meta[id]||{}).type));
+    const near=id=>!focus||id===focus||L.edges.some(e=>(e.source===focus&&e.target===id)||(e.target===focus&&e.source===id));
     let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(' ')}" preserveAspectRatio="xMidYMid meet" font-family="Inter,system-ui,sans-serif"><g transform="translate(${m},${m})">`;
-    for(const e of L.edges){if(hidden.has('edge:'+e.type)||!vis(e.source)||!vis(e.target))continue;const [c,w,d]=st[e.type]||st.data;s+=`<path d="M${e.points.map(q=>q.join(',')).join(' L')}" fill="none" stroke="${c}" stroke-width="${w}" ${d?`stroke-dasharray="${d}"`:''}/>`;
-      if(e.label){const k=Math.floor(e.points.length/2),a=e.points[k-1],b=e.points[k],x=(a[0]+b[0])/2,y=(a[1]+b[1])/2,tw=6.2*e.label.length+8;s+=`<rect x="${x-tw/2}" y="${y-8}" width="${tw}" height="14" rx="3" fill="${css('--surface')}" stroke="${css('--line')}"/><text x="${x}" y="${y+3}" font-size="9" font-weight="700" text-anchor="middle" fill="${c}">${esc(e.label)}</text>`;}}
-    for(const [id,b] of Object.entries(L.nodes)){if(!vis(id))continue;const n=meta[id]||{},c=color(n.type);s+=`<g><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" fill="${css('--surface')}" stroke="${c}" stroke-width="1.5"/><text x="${b.x+10}" y="${b.y+18}" font-size="9" font-weight="700" fill="${c}">${esc((LABEL[n.type]||n.type||'').toUpperCase())}</text><text x="${b.x+10}" y="${b.y+36}" font-size="13" font-weight="600" fill="${css('--text')}">${esc((n.name||id).slice(0,26))}</text><text x="${b.x+10}" y="${b.y+52}" font-size="10" fill="${css('--muted')}">${esc((n.product||'').slice(0,30))}</text>`;
+    for(const e of L.edges){if(hidden.has('edge:'+e.type)||!vis(e.source)||!vis(e.target))continue;const [c,w,d]=st[e.type]||st.data;const op=focus&&e.source!==focus&&e.target!==focus?0.15:1;s+=`<path d="M${e.points.map(q=>q.join(',')).join(' L')}" fill="none" stroke="${c}" stroke-width="${w}" opacity="${op}" ${d?`stroke-dasharray="${d}"`:''}/>`;
+      if(e.label&&op===1){const k=Math.floor(e.points.length/2),a=e.points[k-1],b=e.points[k],x=(a[0]+b[0])/2,y=(a[1]+b[1])/2,tw=6.2*e.label.length+8;s+=`<rect x="${x-tw/2}" y="${y-8}" width="${tw}" height="14" rx="3" fill="${css('--surface')}" stroke="${css('--line')}"/><text x="${x}" y="${y+3}" font-size="9" font-weight="700" text-anchor="middle" fill="${c}">${esc(e.label)}</text>`;}}
+    for(const [id,b] of Object.entries(L.nodes)){if(!vis(id))continue;const n=meta[id]||{},c=color(n.type),op=near(id)?1:0.25;s+=`<g opacity="${op}"><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" fill="${css('--surface')}" stroke="${c}" stroke-width="${id===focus?3:1.5}"/><text x="${b.x+10}" y="${b.y+18}" font-size="9" font-weight="700" fill="${c}">${esc((LABEL[n.type]||n.type||'').toUpperCase())}</text><text x="${b.x+10}" y="${b.y+36}" font-size="13" font-weight="600" fill="${css('--text')}">${esc((n.name||id).slice(0,26))}</text><text x="${b.x+10}" y="${b.y+52}" font-size="10" fill="${css('--muted')}">${esc((n.product||'').slice(0,30))}</text>`;
       (n.pins||[]).slice(0,8).forEach((pin,k)=>{const cx=b.x+10+(k%4)*46,cy=b.y+66+Math.floor(k/4)*24;if(cy+18>b.y+b.h)return;s+=`<rect x="${cx}" y="${cy}" width="42" height="18" rx="9" fill="none" stroke="${c}"/><text x="${cx+21}" y="${cy+12.5}" font-size="8.5" text-anchor="middle" fill="${c}">${esc(pin.length>7?pin.slice(0,6)+'…':pin)}</text>`});s+='</g>';}
     el.innerHTML=s+'</g></svg>';};
   tools.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.mode){mode=b.dataset.mode;vb=null;tools.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b));draw();}
     if(b.dataset.zoom){if(b.dataset.zoom==='fit'){vb=null;}else{const k=b.dataset.zoom==='in'?0.8:1.25;const cx=vb[0]+vb[2]/2,cy=vb[1]+vb[3]/2;vb=[cx-vb[2]*k/2,cy-vb[3]*k/2,vb[2]*k,vb[3]*k];}draw();}};
-  tools.onchange=e=>{const t=e.target;const key=t.dataset.edge?'edge:'+t.dataset.edge:'cat:'+t.dataset.cat;t.checked?hidden.delete(key):hidden.add(key);draw();};
+  const onToggle=e=>{const t=e.target;if(!t.dataset||(!t.dataset.edge&&!t.dataset.cat))return;const key=t.dataset.edge?'edge:'+t.dataset.edge:'cat:'+t.dataset.cat;t.checked?hidden.delete(key):hidden.add(key);draw();};
+  tools.onchange=onToggle;side.onchange=onToggle;
+  side.onclick=e=>{const b=e.target.closest('[data-focus]');if(!b)return;focus=focus===b.dataset.focus?null:b.dataset.focus;side.querySelectorAll('[data-focus]').forEach(x=>x.style.fontWeight=x.dataset.focus===focus?'700':'');draw();};
   let drag=null;el.onpointerdown=e=>{drag=[e.clientX,e.clientY];el.setPointerCapture(e.pointerId);el.style.cursor='grabbing'};el.onpointerup=()=>{drag=null;el.style.cursor='grab'};
   el.onpointermove=e=>{if(!drag||!vb)return;const k=vb[2]/el.clientWidth;vb=[vb[0]-(e.clientX-drag[0])*k,vb[1]-(e.clientY-drag[1])*k,vb[2],vb[3]];drag=[e.clientX,e.clientY];draw();};
   el.onwheel=e=>{e.preventDefault();const k=Math.exp(e.deltaY*0.001);const cx=vb[0]+vb[2]/2,cy=vb[1]+vb[3]/2;vb=[cx-vb[2]*k/2,cy-vb[3]*k/2,vb[2]*k,vb[3]*k];draw();};
   draw();
 }
+
+// ================================================================== mech (3D)
 function setupMech(p){
-  const L=p.mechLayout, canvas=document.getElementById('mech'), info=document.getElementById('mechinfo'), tools=document.getElementById('mtools');
-  if(!L||!L.parts||!window.THREE){info.textContent=window.THREE?'No mechanical layout.':'3D view needs three.js (offline?)';return;}
+  const L=p.mechLayout, canvas=$('mech'), tools=$('mtools'), side=$('mechside'), labels=$('axislabels');
+  if(!L||!L.parts||!window.THREE){tools.innerHTML=`<span id="mechinfo">${window.THREE?'No mechanical layout.':'3D view needs three.js (offline?)'}</span>`;side.hidden=true;return;}
   const T=window.THREE, r=new T.WebGLRenderer({canvas,antialias:true,alpha:true});r.setPixelRatio(Math.min(2,devicePixelRatio));
   const scene=new T.Scene(), cam=new T.PerspectiveCamera(45,1,0.1,8000);scene.add(new T.AmbientLight(0xffffff,0.7));const dl=new T.DirectionalLight(0xffffff,0.6);dl.position.set(1,2,1.5);scene.add(dl);
   const EX=X.exploded;const bb=(EX||L).bbox;const lo=L.bbox.min,hi=L.bbox.max,ctr=[(lo[0]+hi[0])/2,(lo[1]+hi[1])/2,(lo[2]+hi[2])/2],diag=Math.hypot(...bb.size)||100;
   const grid=new T.GridHelper(diag*2,20,0x888888,0x444444);grid.position.y=lo[1];scene.add(grid);
+  // dimension axes from the min corner, labelled like the reference ("X 155mm")
+  const axes=[[[hi[0],lo[1],hi[2]],'X',L.bbox.size[0]],[[lo[0],hi[1],hi[2]],'Y',L.bbox.size[1]],[[lo[0],lo[1],lo[2]],'Z',L.bbox.size[2]]];
+  const origin=new T.Vector3(lo[0],lo[1],hi[2]);
+  for(const [end] of axes){const g=new T.BufferGeometry().setFromPoints([origin,new T.Vector3(...end)]);scene.add(new T.Line(g,new T.LineBasicMaterial({color:new T.Color(css('--text'))})));}
+  labels.innerHTML=axes.map(([,a,s])=>`<span>${a} ${Math.round(s)}mm</span>`).join('');
   const meshes=window.HWBP_MESHES||{};const objs={};
   for(const [id,part] of Object.entries(L.parts)){let geo;const mm=meshes[id];
     if(mm){geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(mm.v,3));geo.setIndex(mm.f);geo.computeVertexNormals();}
     else geo=part.shape==='cylinder'?new T.CylinderGeometry(Math.min(part.size[0],part.size[2])/2,Math.min(part.size[0],part.size[2])/2,part.size[1],32):new T.BoxGeometry(...part.size);
     const c=new T.Color(part.color), elec=['mcu','sensor','actuator','power','module','display'].includes(part.type);
     const mesh=new T.Mesh(geo,new T.MeshStandardMaterial({color:c,transparent:true,opacity:mm?0.85:(elec?0.35:0.25),side:T.DoubleSide,roughness:.8}));
-    const edges=new T.LineSegments(new T.EdgesGeometry(geo,15),new T.LineBasicMaterial({color:c}));const g=new T.Group();g.add(mesh);g.add(edges);g.position.set(...part.pos);scene.add(g);objs[id]={g,type:part.type};}
-  let th=0.8,ph=0.9,dist=diag*1.6;const resize=()=>{const w=canvas.clientWidth,h=canvas.clientHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();};
-  const draw=()=>{cam.position.set(ctr[0]+dist*Math.sin(ph)*Math.cos(th),ctr[1]+dist*Math.cos(ph),ctr[2]+dist*Math.sin(ph)*Math.sin(th));cam.lookAt(...ctr);r.render(scene,cam);};
+    const edges=new T.LineSegments(new T.EdgesGeometry(geo,15),new T.LineBasicMaterial({color:c}));const g=new T.Group();g.add(mesh);g.add(edges);g.position.set(...part.pos);scene.add(g);objs[id]={g,type:part.type,on:true};}
+  const HOME={th:0.8,ph:0.9,dist:diag*1.6};let {th,ph,dist}=HOME;
+  const resize=()=>{const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();};
+  const draw=()=>{cam.position.set(ctr[0]+dist*Math.sin(ph)*Math.cos(th),ctr[1]+dist*Math.cos(ph),ctr[2]+dist*Math.sin(ph)*Math.sin(th));cam.lookAt(...ctr);r.render(scene,cam);
+    const w=canvas.clientWidth,h=canvas.clientHeight,spans=labels.children;axes.forEach(([end],i)=>{const v=origin.clone().lerp(new T.Vector3(...end),0.5).project(cam);spans[i].style.left=((v.x+1)/2*w)+'px';spans[i].style.top=((1-v.y)/2*h)+'px';spans[i].style.display=v.z<1?'':'none';});};
+  tools.innerHTML=`<span id="mechinfo">X ${Math.round(L.bbox.size[0])} · Y ${Math.round(L.bbox.size[1])} · Z ${Math.round(L.bbox.size[2])} mm · ${Object.keys(L.parts).length} parts</span>
+    <button class="btn sm" id="mhome" aria-label="Reset view" title="Reset view">${ICON.home}</button><button class="btn sm" id="mfull" aria-label="Full screen" title="Full screen">${ICON.full}</button>${EX?'<button class="btn sm" id="explode" aria-pressed="false">Explode</button>':''}`;
+  $('mhome').onclick=()=>{({th,ph,dist}=HOME);draw();};
+  $('mfull').onclick=()=>{const w=$('mechwrap');if(document.fullscreenElement)document.exitFullscreen();else if(w.requestFullscreen)w.requestFullscreen();};
+  document.addEventListener('fullscreenchange',()=>setTimeout(()=>{resize();draw();},50));
+  const ex=$('explode');if(ex)ex.onclick=()=>{const on=ex.getAttribute('aria-pressed')!=='true';ex.setAttribute('aria-pressed',on);for(const [id,o] of Object.entries(objs))o.g.position.set(...((on?EX:L).parts[id].pos));draw();};
+  // sidebar: assembly tree with per-part visibility + CAD status, legend with per-type toggles
   const types=[...new Set(Object.values(L.parts).map(q=>q.type))];
-  tools.innerHTML=`${EX?'<button class="btn" id="explode" aria-pressed="false">Explode</button>':''}${types.map(t=>`<label><input type="checkbox" data-type="${esc(t)}" checked/><span class="dot" style="background:${color(t)}"></span>${esc(LABEL[t]||t)}</label>`).join('')}`;
-  tools.onchange=e=>{const t=e.target.dataset.type;for(const o of Object.values(objs))if(o.type===t)o.g.visible=e.target.checked;draw();};
-  const ex=document.getElementById('explode');if(ex)ex.onclick=()=>{const on=ex.getAttribute('aria-pressed')!=='true';ex.setAttribute('aria-pressed',on);for(const [id,o] of Object.entries(objs))o.g.position.set(...((on?EX:L).parts[id].pos));draw();};
+  side.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><p class="label" style="margin:0">Parts</p><span class="small muted" id="cadcount"></span></div>
+    <div id="mtree" style="margin-top:6px">${(L.tree||[]).filter(row=>objs[row.id]).map(row=>`<div class="row" data-id="${esc(row.id)}" style="padding-left:${row.depth*14}px">${row.depth?'<span class="muted">└</span>':''}<button class="eye" data-eye="${esc(row.id)}" aria-label="Hide ${esc(row.name)}" aria-pressed="true">${ICON.eye}</button><span class="dot" style="background:${color(row.type)}"></span><span class="name" title="${esc(row.name)}">${esc(row.name)}</span><span class="cadslot" data-cad="${esc(row.id)}"></span></div>`).join('')}</div>
+    <div class="legend">${types.map(t=>`<label><input type="checkbox" data-type="${esc(t)}" checked/><span class="dot" style="background:${color(t)}"></span>${esc(LABEL[t]||t)} <span class="muted">(${Object.values(L.parts).filter(q=>q.type===t).length})</span></label>`).join('')}</div>
+    ${(L.collisions||[]).length?`<p class="sev-warning small">Interference: ${L.collisions.map(c=>c.join(' × ')).join(', ')}</p>`:''}<div id="cadmsg" class="small" style="margin-top:8px"></div>`;
+  const setEye=(id,on)=>{const o=objs[id];if(!o)return;o.on=on;o.g.visible=on;const b=side.querySelector(`[data-eye="${CSS.escape(id)}"]`);if(b){b.innerHTML=on?ICON.eye:ICON.eyeoff;b.setAttribute('aria-pressed',on);b.closest('.row').classList.toggle('off',!on);}};
+  side.onclick=e=>{const b=e.target.closest('[data-eye]');if(b){setEye(b.dataset.eye,!objs[b.dataset.eye].on);draw();}};
+  side.onchange=e=>{const t=e.target.dataset.type;if(!t)return;for(const [id,o] of Object.entries(objs))if(o.type===t)setEye(id,e.target.checked);draw();};
   let drag=null;canvas.onpointerdown=e=>{drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId)};canvas.onpointerup=()=>drag=null;
   canvas.onpointermove=e=>{if(!drag)return;th+=(e.clientX-drag[0])*0.01;ph=Math.max(0.1,Math.min(3.0,ph-(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];draw();};
   canvas.onwheel=e=>{e.preventDefault();dist*=Math.exp(e.deltaY*0.001);draw();};addEventListener('resize',()=>{resize();draw()});resize();draw();
-  info.textContent=`X ${Math.round(L.bbox.size[0])} mm · Y ${Math.round(L.bbox.size[1])} mm · Z ${Math.round(L.bbox.size[2])} mm · ${Object.keys(L.parts).length} parts`;
-  document.getElementById('mechtree').innerHTML='<h3 style="margin-top:0">Assembly</h3>'+(L.tree||[]).map(row=>`<div style="padding-left:${row.depth*16}px">${row.depth?'└ ':''}<span class="dot" style="background:${color(row.type)}"></span>${esc(row.name)}</div>`).join('')+((L.collisions||[]).length?`<p class="sev-warning small">Interference: ${L.collisions.map(c=>c.join(' × ')).join(', ')}</p>`:'');
+  if(PID)setupCad();
 }
+async function setupCad(){
+  const msg=$('cadmsg');let state;
+  const paint=()=>{$('cadcount').textContent=`CAD ${state.done}/${state.eligible.length} · ${state.wallet.unlimited?'unlimited':state.wallet.balance+' credits'}`;
+    document.querySelectorAll('.cadslot').forEach(slot=>{const id=slot.dataset.cad;if(!state.eligible.includes(id)){slot.innerHTML='';return;}const j=state.jobs[id];
+      if(j&&j.status==='succeeded')slot.innerHTML=`<details class="menu"><summary class="cadbtn done" aria-label="CAD files for ${esc(id)}">CAD</summary><div class="items">${j.artifacts.map(a=>`<a href="/api/cad-jobs/${esc(j.id)}/artifacts/${esc(a)}" download>${esc(a.split('.').pop().toUpperCase())} <span class="muted small">${esc(a)}</span></a>`).join('')}<div class="sep"></div><span class="small muted" style="padding:6px 10px;display:block">${j.stats?esc(j.stats.triangles+' triangles · '+Math.round(j.stats.volumeMm3)+' mm³'):''}</span></div></details>`;
+      else slot.innerHTML=`<button class="cadbtn" data-gen="${esc(id)}" ${canEdit()?'':'disabled'} title="Generate CAD for this part" aria-label="Generate CAD for ${esc(id)}">○</button>`;});};
+  try{state=await api(`/api/projects/${PID}/cad-jobs`);paint();}catch(e){msg.textContent='CAD status unavailable.';return;}
+  $('mechside').addEventListener('click',async e=>{const b=e.target.closest('[data-gen]');if(!b)return;b.classList.add('busy');b.textContent='…';
+    try{const j=await api('/api/cad-jobs/part',{projectId:PID,nodeId:b.dataset.gen});state=await api(`/api/projects/${PID}/cad-jobs`);paint();msg.innerHTML=j.status==='succeeded'?`<span class="ok">CAD ready for ${esc(b.dataset.gen)}</span>`:`<span class="err">CAD ${esc(j.status)}: ${esc(j.error||'')}</span>`;}
+    catch(err){b.classList.remove('busy');b.textContent='○';msg.innerHTML=err.status===402?'You are out of CAD credits. <a href="/pricing">Get more credits</a> to keep generating.':`<span class="err">Could not generate CAD: ${esc(err.message)}</span>`;}});
+}
+
+// ================================================================== instructions
+function renderGuide(p,nodes){
+  const byId=Object.fromEntries(nodes.map(n=>[n.id,n]));
+  const doneKey='hwbp:'+(p.imagePromptSnapshot&&p.imagePromptSnapshot.designHash||p.projectName);const done=store(doneKey)||{};
+  const pre=p.instructionPreamble||{tools:[],assumptions:[]};const D=X.details||{};const steps=p.instructionSteps||[];
+  const all=steps.flatMap(s=>s.subSteps.map(ss=>ss.id));
+  const card=id=>{const n=byId[id];if(!n)return `<div class="pcard"><div class="ic">${ICON.chip}</div><div class="small">${esc(id)}</div></div>`;const printed=PRINTED.has(n.type)&&n.printSettings;
+    return `<div class="pcard"><div class="ic" style="color:${color(n.type)}">${printed?ICON.print:ICON.chip}</div><div style="min-width:0"><div class="small" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n.name)}</div><div class="small muted">${printed?'3D Print':esc(LABEL[n.type]||n.type)}${(n.quantity||1)>1?' × '+n.quantity:''}</div></div></div>`;};
+  $('tab-guide').innerHTML=`<div class="card progressbar"><b class="small" style="letter-spacing:.06em;text-transform:uppercase">Instructions <span class="muted" id="gdone"></span></b><div class="meter" aria-hidden="true"><i id="gmeter"></i></div></div>
+  <div class="card"><p class="label">Tools &amp; assumptions</p><div class="cols"><div><b class="small">Tools</b><ul class="small">${pre.tools.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div><div><b class="small">Assumptions</b><ul class="small">${pre.assumptions.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div></div></div>`+
+  steps.map((s,i)=>`<div class="step" data-sid="${esc(s.id)}"><div class="head"><b>${i+1}. ${esc(s.title||s.id)}</b><span class="count" data-scount="${esc(s.id)}"></span></div>${s.subSteps.map((ss,j)=>`<div class="sub"><label class="step-title"><input type="checkbox" data-step="${esc(ss.id)}" ${done[ss.id]?'checked':''}/> <span><span class="muted">${i+1}.${j+1}</span> ${esc(ss.title)}</span></label>
+    ${(ss.tools||[]).length?`<div class="chips">${ss.tools.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`:''}
+    ${(ss.partIds||[]).length?`<div class="pcards">${ss.partIds.map(card).join('')}</div>`:''}
+    <div class="more"><button class="btn ghost sm" data-more="${esc(s.id)}|${esc(ss.id)}" aria-expanded="false">View details ›</button><div class="moreout" hidden></div></div></div>`).join('')}</div>`).join('');
+  const count=()=>{const n=all.filter(id=>done[id]).length;$('gdone').textContent=`${n}/${all.length} done`;$('gmeter').style.width=(all.length?100*n/all.length:0)+'%';
+    steps.forEach(s=>{const k=s.subSteps.filter(ss=>done[ss.id]).length,el=document.querySelector(`[data-scount="${CSS.escape(s.id)}"]`);el.textContent=`${k}/${s.subSteps.length}`;el.classList.toggle('full',k===s.subSteps.length);});};
+  document.querySelectorAll('[data-step]').forEach(cb=>cb.onchange=()=>{done[cb.dataset.step]=cb.checked;store(doneKey,done);count();});count();
+  document.querySelectorAll('[data-more]').forEach(b=>b.onclick=async()=>{const out=b.nextElementSibling;const open=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',!open);b.textContent=open?'View details ›':'Hide details ‹';out.hidden=open;if(open||out.dataset.loaded)return;
+    const [sid,ssid]=b.dataset.more.split('|');let d=D[ssid];
+    if(!d&&PID){try{d=await api(`/api/projects/${PID}/instructions/${encodeURIComponent(sid)}/${encodeURIComponent(ssid)}/detail`);}catch(e){d=null;}}
+    out.dataset.loaded='1';out.innerHTML=(d?`<p class="small">${esc(d.summary)}</p><ol class="small">${d.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><p class="small"><b>Tip:</b> ${esc(d.tip)}</p>`:'<p class="small muted">No extra details for this step.</p>')+
+      (PID?`<img alt="Illustration of step ${esc(ssid)}" loading="lazy" style="max-width:min(100%,520px);border-radius:8px;border:1px solid var(--line)" src="/api/projects/${esc(PID)}/steps/${esc(sid)}/${esc(ssid)}/image.svg"/>`:'');});
+}
+
+// ================================================================== share / history dialogs
+async function openShare(){
+  const body=openDialog('Share project','<p class="small muted">Loading…</p>');
+  const paint=async()=>{let meta,members,links,invites;try{[meta,members,links,invites]=await Promise.all([api(`/api/projects/${PID}/meta`),api(`/api/projects/${PID}/members`),api(`/api/projects/${PID}/share-links`),api(`/api/projects/${PID}/invitations`)]);}catch(e){body.innerHTML='<p class="err small">Sharing settings are unavailable: '+esc(e.message)+'</p>';return;}
+    const pub=meta.published;const abs=u=>location.origin+u;
+    body.innerHTML=`<h4 style="margin-top:0">Community</h4>${pub?`<div class="rowf"><input type="text" readonly value="${esc(abs(pub.url))}" style="flex:1" aria-label="Public link"/><button class="btn sm" data-copy="${esc(abs(pub.url))}">Copy link</button><a class="btn sm" href="${esc(pub.url)}" target="_blank" rel="noopener">Open</a><button class="btn sm" id="unpub">Unpublish</button></div><p class="small muted">★ ${pub.starCount} · anyone with the link can view and copy it.</p>`
+      :'<div class="rowf"><button class="btn primary sm" id="pubbtn">Publish to community</button><span class="small muted">Makes a read-only copy that anyone can view, star and copy.</span></div>'}
+      <h4>Invite by email</h4><form class="rowf" id="invform"><label class="small muted" for="invemail">Email</label><input type="email" id="invemail" required placeholder="name@example.com" style="flex:1;min-width:180px"/><label class="small muted" for="invrole">Role</label><select id="invrole"><option value="viewer">Viewer</option><option value="editor">Editor</option></select><button class="btn sm">Invite</button></form><div id="invout" class="small"></div>
+      ${invites.invitations.length?`<div class="list">${invites.invitations.map(i=>`<div class="li"><span>${esc(i.email)} <span class="muted">· ${esc(i.role)} · pending</span></span><button class="btn sm" data-revinv="${esc(i.id)}">Revoke</button></div>`).join('')}</div>`:''}
+      <h4>Share link</h4><div class="rowf"><label class="small muted" for="linkrole">Anyone with the link joins as</label><select id="linkrole"><option value="viewer">Viewer</option><option value="editor">Editor</option></select><button class="btn sm" id="mklink">Create link</button></div><div id="linkout" class="small"></div>
+      ${links.shareLinks.length?`<div class="list">${links.shareLinks.map(l=>`<div class="li"><span>${esc(l.role)} link <span class="muted">${l.expiresAt?'· expires '+new Date(l.expiresAt*1000).toLocaleDateString():''}</span></span><button class="btn sm" data-revlink="${esc(l.id)}">Revoke</button></div>`).join('')}</div>`:''}
+      <h4>Members</h4><div class="list">${members.members.map(m=>`<div class="li"><span>${esc(m.userId)}</span>${m.role==='owner'?'<span class="muted small">owner</span>':`<span class="rowf"><label class="sr" for="role-${esc(m.userId)}" hidden>Role</label><select id="role-${esc(m.userId)}" data-member="${esc(m.userId)}"><option ${m.role==='editor'?'selected':''} value="editor">Editor</option><option ${m.role==='viewer'?'selected':''} value="viewer">Viewer</option></select><button class="btn sm" data-rm="${esc(m.userId)}">Remove</button></span>`}</div>`).join('')}</div>`;
+    const on=(sel,fn)=>body.querySelectorAll(sel).forEach(el=>el.onclick=fn);
+    on('[data-copy]',e=>{navigator.clipboard&&navigator.clipboard.writeText(e.currentTarget.dataset.copy);toast('Link copied');});
+    if($('pubbtn'))$('pubbtn').onclick=async()=>{try{await api('/api/publish',{projectId:PID});toast('Published to the community');paint();}catch(e){toast('Could not publish: '+e.message);}};
+    if($('unpub'))$('unpub').onclick=async()=>{try{await api('/api/unpublish',{projectId:PID});toast('Removed from the community');paint();}catch(e){toast('Could not unpublish: '+e.message);}};
+    $('invform').onsubmit=async e=>{e.preventDefault();try{const r=await api(`/api/projects/${PID}/invitations`,{email:$('invemail').value,role:$('invrole').value});$('invout').innerHTML=`Invitation link: <code>${esc(abs(r.url))}</code>`;setTimeout(paint,1500);}catch(err){$('invout').innerHTML=`<span class="err">${esc(err.message)}</span>`;}};
+    $('mklink').onclick=async()=>{try{const r=await api(`/api/projects/${PID}/share-links`,{role:$('linkrole').value});$('linkout').innerHTML=`New link: <code>${esc(abs(r.url))}</code> <button class="btn sm" data-copy2="${esc(abs(r.url))}">Copy</button>`;$('linkout').querySelector('[data-copy2]').onclick=e=>{navigator.clipboard&&navigator.clipboard.writeText(e.currentTarget.dataset.copy2);toast('Link copied');};}catch(err){$('linkout').innerHTML=`<span class="err">${esc(err.message)}</span>`;}};
+    on('[data-revinv]',async e=>{try{await api(`/api/projects/${PID}/invitations/${e.currentTarget.dataset.revinv}`,undefined,'DELETE');paint();}catch(err){toast('Could not revoke: '+err.message);}});
+    on('[data-revlink]',async e=>{try{await api(`/api/projects/${PID}/share-links/${e.currentTarget.dataset.revlink}`,undefined,'DELETE');paint();}catch(err){toast('Could not revoke: '+err.message);}});
+    on('[data-rm]',async e=>{try{await api(`/api/projects/${PID}/members/${encodeURIComponent(e.currentTarget.dataset.rm)}`,undefined,'DELETE');paint();}catch(err){toast('Could not remove: '+err.message);}});
+    body.querySelectorAll('[data-member]').forEach(s=>s.onchange=async()=>{try{await api(`/api/projects/${PID}/members/${encodeURIComponent(s.dataset.member)}`,{role:s.value},'PATCH');toast('Role updated');}catch(err){toast('Could not change the role: '+err.message);paint();}});};
+  paint();
+}
+async function openHistory(){
+  const body=openDialog('Version history','<p class="small muted">Loading…</p>');
+  try{const [v,head]=await Promise.all([api(`/api/projects/${PID}/versions`),api(`/api/projects/${PID}/head`)]);
+    body.innerHTML=`<p class="small muted">Restoring a version saves it as a new version; nothing is lost.</p><div class="list">${v.versions.slice().reverse().map(n=>`<div class="li"><span>Version ${n}${n===head.version?' <span class="badge ok">current</span>':''}</span>${n!==head.version&&canEdit()?`<button class="btn sm" data-restore="${n}">Restore</button>`:''}</div>`).join('')}</div>`;
+    body.querySelectorAll('[data-restore]').forEach(b=>b.onclick=async()=>{try{await api(`/api/projects/${PID}/restore/${b.dataset.restore}`,{});location.reload();}catch(e){toast('Could not restore: '+e.message);}});}
+  catch(e){body.innerHTML='<p class="err small">History is unavailable: '+esc(e.message)+'</p>';}
+}
+
+// ================================================================== chat + live updates
+async function loadChips(){try{const s=await api(`/api/projects/${PID}/suggested-prompts`);const list=(s.edit||[]).slice(0,3).concat((s.ask||[]).slice(0,2));
+  $('pchips').innerHTML=list.map(t=>`<button type="button">${esc(t)}</button>`).join('');$('pchips').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('chatinput').value=b.textContent;$('chatinput').focus();});}catch(e){$('pchips').innerHTML='';}}
 async function refreshChat(){
-  if(!API||API.mode!=='project')return;const log=document.getElementById('chatlog');
-  try{const s=await api(`/api/projects/${API.projectId}/chat`);
+  if(!PID)return;const log=$('chatlog');
+  try{const s=await api(`/api/projects/${PID}/chat`);
     log.innerHTML=s.turns.map(t=>`<div class="turn"><b>${esc(t.prompt)}</b><div class="small muted">${esc(t.status)}${t.resultKind?' · '+esc(t.resultKind):''}</div>${t.responseText?`<div class="small">${esc(t.responseText)}</div>`:''}${t.plan?`<div class="small">Plan: ${esc(t.plan.plan)}</div>`:''}${t.status==='awaiting_approval'?`<div class="actions"><button class="btn primary" data-op="approve" data-turn="${esc(t.id)}">Approve</button><button class="btn" data-op="dismiss" data-turn="${esc(t.id)}">Dismiss</button></div>`:''}</div>`).join('')||'<p class="small muted">Ask about the design or request a change.</p>';
-    log.querySelectorAll('[data-op]').forEach(b=>b.onclick=async()=>{try{await api(`/api/projects/${API.projectId}/chat/${b.dataset.turn}/${b.dataset.op}`,{});if(b.dataset.op==='approve')location.reload();else refreshChat();}catch(e){alert('Could not '+b.dataset.op+': '+e.message)}});
-    log.scrollTop=log.scrollHeight;}catch(e){log.innerHTML='<p class="small sev-error">Chat unavailable: '+esc(e.message)+'</p>';}
+    log.querySelectorAll('[data-op]').forEach(b=>b.onclick=async()=>{try{await api(`/api/projects/${PID}/chat/${b.dataset.turn}/${b.dataset.op}`,{});if(b.dataset.op==='approve')location.reload();else refreshChat();}catch(e){toast('Could not '+b.dataset.op+': '+e.message)}});
+    log.scrollTop=log.scrollHeight;}catch(e){log.innerHTML='<p class="small sev-error">Chat is unavailable: '+esc(e.message)+'</p>';}
 }
-async function sendChat(e){e.preventDefault();const inp=document.getElementById('chatinput');const msg=inp.value.trim();if(!msg)return;inp.value='';
-  try{await api(`/api/projects/${API.projectId}/chat`,{message:msg,autoApprove:false});}catch(err){alert('Message failed: '+err.message);}refreshChat();}
+async function sendChat(e){e.preventDefault();const inp=$('chatinput');const msg=inp.value.trim();if(!msg)return;inp.value='';
+  try{await api(`/api/projects/${PID}/chat`,{message:msg,autoApprove:false});}catch(err){toast('Message failed: '+err.message);}refreshChat();}
+function liveEvents(){try{const ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+`/api/projects/${PID}/events`);
+  ws.onopen=()=>ws.send(JSON.stringify({type:'authenticate'}));
+  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data);}catch(e){return;}
+    if(m.type==='project_changed'&&API.meta&&m.version>API.meta.version){const b=$('banner');b.hidden=false;b.innerHTML='This project was changed. <button class="btn sm" id="reload">Reload</button>';$('reload').onclick=()=>location.reload();}
+    if(m.type==='chat_changed'&&!$('chat').hidden)refreshChat();};}catch(e){}}
 })();
 </script>
 </body>
