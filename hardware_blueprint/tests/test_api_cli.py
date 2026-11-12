@@ -136,7 +136,12 @@ def test_cad_endpoints(client, pid):
     assert wallet["eligible"] >= wallet["billable"] > 0
     job = client.post("/api/cad-jobs/part", json={"projectId": pid, "nodeId": "enclosure_base"}).json()
     assert job["status"] == "succeeded"
-    assert client.get(f"/api/cad-jobs/{job['id']}").json()["artifacts"] == ["model.glb", "model.obj", "model.stl"]
+    assert client.get(f"/api/cad-jobs/{job['id']}").json()["artifacts"] == [
+        "model.glb",
+        "model.obj",
+        "model.step",
+        "model.stl",
+    ]
     stl = client.get(f"/api/cad-jobs/{job['id']}/artifacts/model.stl")
     assert stl.headers["content-type"] == "model/stl" and len(stl.content) > 84
     assert client.get(f"/api/cad-jobs/{job['id']}/artifacts/nope").status_code == 404

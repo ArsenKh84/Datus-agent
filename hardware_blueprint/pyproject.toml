@@ -22,6 +22,8 @@ dev = [
     "httpx>=0.27",
     "fastapi>=0.110,<1",
     "ruff>=0.15",
+    "steputils>=0.1",
+    "uvicorn>=0.27",
 ]
 
 [project.scripts]

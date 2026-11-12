@@ -429,3 +429,65 @@ def read_glb_json(data: bytes) -> dict:
     if chunk_type != b"JSON":
         raise ValueError("first GLB chunk must be JSON")
     return json.loads(data[20 : 20 + json_len].decode("utf-8"))
+
+
+def to_step(meshes: Iterable[Mesh], name: str = "hwbp_part", author: str = "hwbp") -> str:
+    """ISO-10303-21 (STEP AP214) faceted B-rep: one FACETED_BREP (CLOSED_SHELL of planar POLY_LOOP faces) per mesh.
+
+    Opens in FreeCAD / Fusion / SolidWorks / Onshape as a solid body made of triangular faces (mm units).
+    """
+    ents: list[str] = []
+
+    def add(text: str) -> int:
+        ents.append(text)
+        return len(ents)
+
+    ctx_app = add("APPLICATION_CONTEXT('automotive design')")
+    add(f"APPLICATION_PROTOCOL_DEFINITION('international standard','automotive_design',2000,#{ctx_app})")
+    prod_ctx = add(f"PRODUCT_CONTEXT('',#{ctx_app},'mechanical')")
+    product = add(f"PRODUCT('{name}','{name}','',(#{prod_ctx}))")
+    pdf = add(f"PRODUCT_DEFINITION_FORMATION('','',#{product})")
+    pd_ctx = add(f"PRODUCT_DEFINITION_CONTEXT('part definition',#{ctx_app},'design')")
+    pd = add(f"PRODUCT_DEFINITION('design','',#{pdf},#{pd_ctx})")
+    pds = add(f"PRODUCT_DEFINITION_SHAPE('','',#{pd})")
+    length = add("(LENGTH_UNIT()NAMED_UNIT(*)SI_UNIT(.MILLI.,.METRE.))")
+    angle = add("(NAMED_UNIT(*)PLANE_ANGLE_UNIT()SI_UNIT($,.RADIAN.))")
+    solid = add("(NAMED_UNIT(*)SI_UNIT($,.STERADIAN.)SOLID_ANGLE_UNIT())")
+    unc = add(f"UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(1.E-04),#{length},'distance_accuracy_value','')")
+    geo_ctx = add(
+        f"(GEOMETRIC_REPRESENTATION_CONTEXT(3)GLOBAL_UNCERTAINTY_ASSIGNED_CONTEXT((#{unc}))"
+        f"GLOBAL_UNIT_ASSIGNED_CONTEXT((#{length},#{angle},#{solid}))REPRESENTATION_CONTEXT('',''))"
+    )
+    origin = add("CARTESIAN_POINT('',(0.,0.,0.))")
+    dz, dx = add("DIRECTION('',(0.,0.,1.))"), add("DIRECTION('',(1.,0.,0.))")
+    placement = add(f"AXIS2_PLACEMENT_3D('',#{origin},#{dz},#{dx})")
+    breps = []
+    for mesh in meshes:
+        pts = [add(f"CARTESIAN_POINT('',({x:.6f},{y:.6f},{z:.6f}))") for x, y, z in mesh.vertices]
+        faces = []
+        for a, b, c in mesh.triangles:
+            loop = add(f"POLY_LOOP('',(#{pts[a]},#{pts[b]},#{pts[c]}))")
+            bound = add(f"FACE_OUTER_BOUND('',#{loop},.T.)")
+            faces.append(add(f"FACE('',(#{bound}))"))
+        shell = add("CLOSED_SHELL('',(" + ",".join(f"#{f}" for f in faces) + "))")
+        breps.append(add(f"FACETED_BREP('{mesh.name}',#{shell})"))
+    rep = add(
+        "FACETED_BREP_SHAPE_REPRESENTATION('',(" + ",".join(f"#{b}" for b in breps + [placement]) + f"),#{geo_ctx})"
+    )
+    add(f"SHAPE_DEFINITION_REPRESENTATION(#{pds},#{rep})")
+    header = [
+        "ISO-10303-21;",
+        "HEADER;",
+        "FILE_DESCRIPTION(('hwbp faceted solid'),'2;1');",
+        f"FILE_NAME('{name}.step','2026-01-01T00:00:00',('{author}'),('hwbp'),'hwbp','hwbp','');",
+        "FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));",
+        "ENDSEC;",
+        "DATA;",
+    ]
+    body = [f"#{i}={e};" for i, e in enumerate(ents, 1)]
+    return "\n".join(header + body + ["ENDSEC;", "END-ISO-10303-21;"]) + "\n"
+
+
+def step_face_count(step_text: str) -> int:
+    """Count FACE entities in a STEP file (validation helper)."""
+    return sum(1 for line in step_text.splitlines() if "=FACE('" in line)

@@ -10,13 +10,12 @@ from __future__ import annotations
 
 import base64
 import json
-import secrets
 import threading
 import time
 import uuid
 from dataclasses import dataclass, field
 
-from fastapi import Body, FastAPI, HTTPException, Query, Response
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Query, Response
 from fastapi.responses import StreamingResponse
 
 from hwbp import __version__
@@ -33,6 +32,18 @@ from hwbp.models import Node, ProjectContent
 from hwbp.pricing import build_bom
 from hwbp.requirements import Requirements
 from hwbp.selection import suggest
+from hwbp.services import (
+    TURN_TTL_S,
+    Accounts,
+    ChatLog,
+    Collaboration,
+    Community,
+    InputImages,
+    Notes,
+    ServiceError,
+    Turn,
+    diff_plan,
+)
 from hwbp.wiring import infer_rails
 
 SECTIONS_BY_PHASE = {
@@ -60,6 +71,10 @@ class Run:
     questions: list[dict] = field(default_factory=list)
     failure: str | None = None
     form_factor: dict | None = None
+    owner: str = "local-user"
+    image_analysis: dict | None = None
+    answers: dict | None = None
+    created_at: float = field(default_factory=time.time)
     cond: threading.Condition = field(default_factory=threading.Condition)
 
     def public(self) -> dict:
@@ -67,7 +82,8 @@ class Run:
             "id": self.id, "status": self.status, "phase": self.phase, "revision": self.revision, "projectId": self.project_id,
             "sections": {s: s in SECTIONS_BY_PHASE.get(self.phase, []) for s in ("parts", "wiring", "mech", "info", "guide")},
             "messages": self.messages, "questionRounds": [{"questions": self.questions}] if self.questions else [],
-            "failure": self.failure, "projectData": self.project,
+            "failure": self.failure, "projectData": self.project, "imageAnalysis": self.image_analysis,
+            "createdAt": self.created_at,
         }  # fmt: skip
 
 
@@ -82,12 +98,32 @@ class State:
         self.wallet = Wallet(plan="pro")
         self.wallet.grant_monthly()
         self.built: set[str] = set()
+        self.accounts = Accounts(default_plan_for={DEFAULT_USER: "pro"})
+        self.collab = Collaboration()
+        self.community = Community()
+        self.notes = Notes()
+        self.images = InputImages()
+        self.chat = ChatLog()
+        self.image_variant: dict[str, int] = {}
+        self.cad_revision: dict[str, int] = {}
+        self.providers: list | None = None  # SourcingProvider list for /api/parts/nexar-sourcing (None = catalog)
+
+
+DEFAULT_USER = "local-user"
+
+
+def current_user(x_user_id: str | None = Header(None)) -> str:
+    """Identity from the ``X-User-Id`` header (plug real auth here). Defaults to a single local user."""
+    return (x_user_id or DEFAULT_USER).strip() or DEFAULT_USER
 
 
 def create_app(engine: Engine | None = None, run_async: bool = True, vision: VisionModel | None = None) -> FastAPI:
     app = FastAPI(title="hwbp protocol server", version=__version__)
     st = State(engine)
     app.state.hwbp = st
+    from hwbp.api_ext import register
+
+    register(app, st, run_async=run_async, vision=vision)  # first: specific paths win over /api/parts/{id}
 
     # ------------------------------------------------------------------ meta
     @app.get("/api/features")
@@ -104,26 +140,41 @@ def create_app(engine: Engine | None = None, run_async: bool = True, vision: Vis
 
     # ------------------------------------------------------------------ generation runs (long-poll)
     @app.post("/api/generation-runs")
-    def start_run(body: dict = Body(...)) -> dict:
+    def start_run(body: dict = Body(...), user: str = Depends(current_user)) -> dict:
         key = body.get("idempotencyKey")
         if key and key in st.idem:
             return st.runs[st.idem[key]].public()
         prompt = (body.get("prompt") or "").strip()
-        form_factor = None
+        form_factor, analysis = None, None
         for img in body.get("inputImages") or []:
-            data = base64.b64decode(img.get("data") or "")
+            if isinstance(img, str):  # id from POST /api/generation-input-images
+                try:
+                    stored = st.images.get(img)
+                except ServiceError as e:
+                    raise HTTPException(e.status, {"error": e.code, "message": e.message}) from e
+                data, mime = stored["bytes"], stored["mimeType"]
+            else:
+                data, mime = base64.b64decode(img.get("data") or ""), img.get("mime", "image/png")
             try:
-                brief = brief_from_image(data, img.get("mime", "image/png"), user_prompt=prompt or None, vision=vision)
+                brief = brief_from_image(data, mime, user_prompt=prompt or None, vision=vision)
             except ValueError as e:
                 raise HTTPException(400, str(e)) from e
             prompt = brief.prompt
+            analysis = dict(brief.analysis)
             if brief.silhouette:
                 form_factor = {"widthMm": brief.silhouette.width_mm, "depthMm": brief.silhouette.depth_mm,
                                "aspect": brief.silhouette.aspect, "fillRatio": brief.silhouette.fill_ratio}  # fmt: skip
+                analysis["silhouette"] = form_factor
         if not prompt:
             raise HTTPException(400, "prompt or inputImages required")
-        run = Run(id=uuid.uuid4().hex, prompt=prompt, idempotency_key=key, form_factor=form_factor)
+        try:
+            st.accounts.consume_credit(user)
+        except ServiceError as e:
+            raise HTTPException(e.status, {"error": e.code, "message": e.message}) from e
+        run = Run(id=uuid.uuid4().hex, prompt=prompt, idempotency_key=key, form_factor=form_factor, owner=user,
+                  image_analysis=analysis, answers=body.get("answers"))  # fmt: skip
         st.runs[run.id] = run
+        st.community.counters["projectsCreated"] += 1
         if key:
             st.idem[key] = run.id
         answers = body.get("answers")
@@ -183,11 +234,17 @@ def create_app(engine: Engine | None = None, run_async: bool = True, vision: Vis
     @app.get("/api/projects/{pid}/head")
     def head(pid: str) -> dict:
         p = _project(st, pid)
-        return {"version": p.revision, "updatedAt": p.updated_at, "activeRun": None}
+        active = next(
+            (r.id for r in st.runs.values() if r.project_id == pid and r.status in ("queued", "running")), None
+        )
+        return {"version": p.revision, "updatedAt": p.updated_at, "activeRun": active, "historyEpoch": st.chat.epoch.get(pid, 0),
+                "cadRevision": st.cad_revision.get(pid, 0), "author": p.owner_id}  # fmt: skip
 
     @app.post("/api/projects/save")
-    def save(body: dict = Body(...)) -> dict:
+    def save(body: dict = Body(...), user: str = Depends(current_user)) -> dict:
         pid = body.get("projectId")
+        if pid in st.projects:
+            _require(st, pid, user, "editor")
         content = ProjectContent.model_validate(body.get("content") or {})
         try:
             p = st.projects.save(pid, content, int(body.get("baseVersion", -1)))
@@ -221,31 +278,58 @@ def create_app(engine: Engine | None = None, run_async: bool = True, vision: Vis
         }
 
     @app.post("/api/projects/{pid}/chat")
-    def chat(pid: str, body: dict = Body(...)) -> dict:
+    def chat(pid: str, body: dict = Body(...), user: str = Depends(current_user)) -> dict:
+        """Ask -> answer turn. Edit -> applied immediately (``autoApprove``, default) or an ``awaiting_approval`` turn
+        carrying a reference-format plan preview (``autoApprove: false``), approved via /chat/{turn}/approve."""
         p = _project(st, pid)
+        _require(st, pid, user, "viewer")
+        message = body.get("message", "")
         base = int(body.get("baseVersion", p.revision))
-        mode, ops = message_to_ops(body.get("message", ""), p.content, st.engine.catalog)
+        mode, ops = message_to_ops(message, p.content, st.engine.catalog)
+        turn = Turn(
+            id=uuid.uuid4().hex[:12],
+            prompt=message,
+            mode=mode,
+            actor=user,
+            status="running",
+            base_version=base,
+            created_at=time.time(),
+        )
         if mode == "ask" or not ops:
+            turn.status, turn.result_kind = "completed", "answer" if mode == "ask" else "clarification"
+            turn.response_text = (
+                _answer(p.content, message)
+                if mode == "ask"
+                else "I could not map that request to a design change — try naming a part or feature."
+            )
+            st.chat.add(pid, turn)
             return {
                 "mode": mode,
                 "applied": False,
                 "ops": [],
-                "answer": _answer(p.content, body.get("message", "")),
+                "answer": turn.response_text,
                 "version": p.revision,
+                "turn": turn.public(),
             }
-        req = apply_ops(
-            Requirements.model_validate(p.content.requirements or {"prompt": p.content.original_prompt}), ops
-        )
-        content = st.engine.generate(requirements=req)
+        _require(st, pid, user, "editor")
+        content = _plan_preview(st, p.content, ops, turn)
+        if body.get("autoApprove", True) is False:
+            st.chat.add(pid, turn)
+            return {"mode": "edit", "applied": False, "ops": turn.ops, "version": p.revision, "turn": turn.public()}
         try:
             saved = st.projects.save(pid, content, base)
         except VersionConflict as e:
+            turn.status, turn.failure_code = "outdated", "version_conflict"
+            st.chat.add(pid, turn)
             raise HTTPException(409, {"error": "version_conflict", "currentVersion": e.current}) from e
-        return {"mode": "edit", "applied": True, "ops": [o.__dict__ for o in ops], "version": saved.revision}
+        turn.status, turn.result_kind, turn.approver, turn.preview = "completed", "edit", user, None
+        st.chat.add(pid, turn)
+        return {"mode": "edit", "applied": True, "ops": turn.ops, "version": saved.revision, "turn": turn.public()}
 
     @app.post("/api/projects/{pid}/edit-plan")
-    def edit_plan(pid: str, body: dict = Body(...)) -> dict:
+    def edit_plan(pid: str, body: dict = Body(...), user: str = Depends(current_user)) -> dict:
         p = _project(st, pid)
+        _require(st, pid, user, "editor")
         plan, rep = validate_plan(p.content, body.get("plan") or {}, st.engine.catalog)
         if body.get("dryRun"):
             return {"plan": plan, "repaired": rep.repaired, "dropped": rep.dropped}
@@ -353,6 +437,7 @@ def create_app(engine: Engine | None = None, run_async: bool = True, vision: Vis
             raise HTTPException(422, str(e)) from e
         if job.status == "succeeded":
             st.built.add(billing_key(node))
+            st.cad_revision[p.id] = st.cad_revision.get(p.id, 0) + 1
         return job.public()
 
     @app.get("/api/cad-jobs/{job_id}")
@@ -366,9 +451,12 @@ def create_app(engine: Engine | None = None, run_async: bool = True, vision: Vis
         job = st.cad.jobs.get(job_id)
         if job is None or name not in job.artifacts:
             raise HTTPException(404, "unknown artifact")
-        media = {"model.stl": "model/stl", "model.glb": "model/gltf-binary", "model.obj": "text/plain"}.get(
-            name, "application/octet-stream"
-        )
+        media = {
+            "model.stl": "model/stl",
+            "model.glb": "model/gltf-binary",
+            "model.obj": "text/plain",
+            "model.step": "model/step",
+        }.get(name, "application/octet-stream")
         return Response(job.artifacts[name], media_type=media)
 
     @app.get("/api/cad-wallet")
@@ -402,18 +490,18 @@ def create_app(engine: Engine | None = None, run_async: bool = True, vision: Vis
 
     # ------------------------------------------------------------------ publish / share
     @app.post("/api/publish")
-    def publish(body: dict = Body(...)) -> dict:
+    def publish(body: dict = Body(...), user: str = Depends(current_user)) -> dict:
         p = _project(st, body.get("projectId", ""))
-        token = secrets.token_urlsafe(32)
-        st.published[token] = {"publishedProjectId": p.id, "contentRevision": p.revision, "content": p.content.dump(), "starCount": 0,
-                               "publishedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}  # fmt: skip
-        return {"token": token, "url": f"/s/{token}"}
+        _require(st, p.id, user, "owner")
+        e = st.community.publish(p.id, user, p.content, p.revision, image_url=f"/api/projects/{p.id}/image.svg")
+        return {"token": e["token"], "url": f"/s/{e['token']}"}
 
     @app.get("/api/published")
     def published(token: str) -> dict:
-        if token not in st.published:
-            raise HTTPException(404, "not found")
-        return st.published[token]
+        try:
+            return st.community.get(token)
+        except ServiceError as e:
+            raise HTTPException(404, "not found") from e
 
     @app.get("/api/published/head")
     def published_head(token: str) -> dict:
@@ -443,8 +531,12 @@ def _execute(st: State, run: Run, answers: dict | None) -> None:
                 if content is not None:
                     run.project = content.dump()
                     if ev["phase"] == "done":
-                        pid = uuid.uuid4().hex[:12]
-                        st.projects.create(pid, content)
+                        pid = run.project_id or uuid.uuid4().hex[:12]
+                        if pid in st.projects:  # re-run (questions / retry): new version of the same project
+                            st.projects.save(pid, content, st.projects.get(pid).revision)
+                        else:
+                            st.projects.create(pid, content, owner_id=run.owner)
+                            st.collab.set_owner(pid, run.owner)
                         run.project_id = pid
                 run.cond.notify_all()
     except Exception as e:  # noqa: BLE001 - surfaced to the client as run.failure
@@ -479,6 +571,25 @@ def _answer(content: ProjectContent, question: str) -> str:
     if "cost" in q or "price" in q:
         return f"Estimated parts cost: ${(content.bom or {}).get('estimateTotalUsd')}."
     return content.project_description or "No answer available."
+
+
+def _require(st: State, pid: str, user: str, role: str) -> str:
+    try:
+        return st.collab.require(pid, user, role)
+    except ServiceError as e:
+        raise HTTPException(e.status, {"error": e.code, "message": e.message}) from e
+
+
+def _plan_preview(st: State, content: ProjectContent, ops: list, turn: "Turn") -> ProjectContent:
+    """Regenerate with the requested overrides and attach a reference-format plan + 15-minute approval deadline."""
+    req = apply_ops(Requirements.model_validate(content.requirements or {"prompt": content.original_prompt}), ops)
+    new = st.engine.generate(requirements=req)
+    turn.ops = [o.__dict__ for o in ops]
+    turn.plan = diff_plan(content, new)
+    turn.preview = new
+    turn.status = "awaiting_approval"
+    turn.deadline = time.time() + TURN_TTL_S
+    return new
 
 
 app = create_app()

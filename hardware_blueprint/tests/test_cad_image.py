@@ -66,7 +66,7 @@ def test_feature_specs_cover_part_kinds(reference_content):
 def test_cad_job_lifecycle(reference_content):
     q = CadJobQueue()
     job = q.submit("p1", reference_content, "shell")
-    assert job.status == "succeeded" and set(job.artifacts) == {"model.stl", "model.obj", "model.glb"}
+    assert job.status == "succeeded" and set(job.artifacts) == {"model.stl", "model.obj", "model.glb", "model.step"}
     assert job.stats["print"]["filament"] == "PETG" and job.stats["volumeMm3"] > 0
     assert M.read_stl_binary(job.artifacts["model.stl"]).is_watertight()
     assert q.cancel(job.id).status == "succeeded"  # finished jobs can't be cancelled
@@ -253,3 +253,11 @@ def test_extrude_with_holes_exact_and_from_picture():
     expected = ((80 * 30 + 30 * 50) - math.pi * (64 + 49)) * 5
     assert report["holes"] == 2 and mesh.is_watertight()
     assert report["volumeMm3"] == pytest.approx(expected, rel=0.05)
+
+
+def test_outline_drawing_is_filled_but_mounting_holes_are_kept():
+    ring = _img(lambda x, y: 20 <= x < 100 and 20 <= y < 100 and not (26 <= x < 94 and 26 <= y < 94))  # drawn border
+    mesh, rep = image_to_mesh(encode_png_gray(ring), "extrude", width_mm=80, height_mm=4)
+    assert rep["filledOutline"] and rep["holes"] == 0 and mesh.volume() == pytest.approx(80 * 80 * 4, rel=0.06)
+    _, kept = image_to_mesh(encode_png_gray(ring), "extrude", width_mm=80, height_mm=4, fill=False)
+    assert kept["holes"] == 1 and not kept["filledOutline"]

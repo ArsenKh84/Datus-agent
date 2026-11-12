@@ -13,24 +13,32 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,sans-serif}
 header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5}
 h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.02em}nav{display:flex;gap:4px;flex-wrap:wrap}
-nav button{border:1px solid transparent;background:none;color:var(--muted);padding:6px 12px;border-radius:8px;font:600 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;min-height:32px}
-nav button[aria-selected="true"]{background:var(--text);color:var(--bg)}nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav button,.btn{border:1px solid transparent;background:none;color:var(--muted);padding:6px 12px;border-radius:8px;font:600 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;min-height:32px;text-decoration:none;display:inline-flex;align-items:center}
+nav button[aria-selected="true"]{background:var(--text);color:var(--bg)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border-color:var(--line);color:var(--text)}.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
 main{max-width:1200px;margin:0 auto;padding:16px}section[hidden]{display:none}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
 .tags{display:flex;flex-wrap:wrap;gap:6px}.tag{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--muted)}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.muted{color:var(--muted)}.small{font-size:12px}
+tr.part{cursor:pointer}tr.part:hover td{background:var(--bg)}tr.detail td{background:var(--bg)}
 .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;border:1px solid currentColor}
 .sev-error{color:var(--err)}.sev-warning{color:var(--warn)}.sev-info{color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.kpi b{display:block;font-size:22px}
-.scroll{overflow:auto;-webkit-overflow-scrolling:touch}#wiring svg{display:block;max-width:none}
+.hero svg{width:100%;height:auto;display:block;border-radius:10px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}.toolbar label{font-size:12px;display:flex;gap:4px;align-items:center}
+#wiring{overflow:hidden;position:relative;height:560px;cursor:grab;touch-action:none}#wiring svg{display:block;width:100%;height:100%}
 #mechwrap{position:relative;height:520px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}#mech{width:100%;height:100%;display:block;touch-action:none}
 #mechinfo{position:absolute;left:12px;top:12px;font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
 .tree div{padding:2px 0;font-size:13px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
-details{border-top:1px solid var(--line);padding:8px 0}summary{cursor:pointer;font-weight:600}label.step{display:flex;gap:8px;align-items:flex-start;padding:6px 0}
+details{border-top:1px solid var(--line);padding:8px 0}summary{cursor:pointer;font-weight:600}label.step{display:inline-flex;gap:8px;align-items:flex-start}
 pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:12px}
-select{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:32px}
-a{color:var(--accent)}@media (max-width:640px){#mechwrap{height:380px}th:nth-child(4),td:nth-child(4){display:none}}
+select,input[type=text],textarea{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:32px;font:inherit}
+a{color:var(--accent)}
+#chat{position:fixed;right:16px;bottom:16px;width:min(380px,calc(100vw - 32px));z-index:6}#chat .card{margin:0;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+#chatlog{max-height:300px;overflow:auto;font-size:13px}#chatlog .turn{border-top:1px solid var(--line);padding:6px 0}
+@media (max-width:640px){#mechwrap{height:380px}#wiring{height:420px}th:nth-child(4),td:nth-child(4){display:none}}
 </style>
 </head>
 <body>
@@ -38,16 +46,19 @@ a{color:var(--accent)}@media (max-width:640px){#mechwrap{height:380px}th:nth-chi
 <nav role="tablist" aria-label="Project views">
 <button role="tab" data-tab="info" aria-selected="true">Info</button><button role="tab" data-tab="parts">Parts</button>
 <button role="tab" data-tab="wiring">Wiring</button><button role="tab" data-tab="mech">Mech</button>
-<button role="tab" data-tab="guide">Instructions</button><button role="tab" data-tab="code">Code</button></nav></header>
+<button role="tab" data-tab="guide">Instructions</button><button role="tab" data-tab="code">Code</button></nav>
+<div class="actions" id="headeractions"></div></header>
 <main>
 <section id="tab-info"></section>
 <section id="tab-parts" hidden></section>
-<section id="tab-wiring" hidden><div class="card scroll" id="wiring"></div></section>
-<section id="tab-mech" hidden><div id="mechwrap"><canvas id="mech" aria-label="3D assembly; drag to rotate, scroll to zoom"></canvas><div id="mechinfo"></div></div><div class="card tree" id="mechtree" style="margin-top:16px"></div></section>
+<section id="tab-wiring" hidden><div class="card"><div class="toolbar" id="wtools"></div><div id="wiring"></div></div></section>
+<section id="tab-mech" hidden><div class="toolbar" id="mtools"></div><div id="mechwrap"><canvas id="mech" aria-label="3D assembly; drag to rotate, scroll to zoom"></canvas><div id="mechinfo"></div></div><div class="card tree" id="mechtree" style="margin-top:16px"></div></section>
 <section id="tab-guide" hidden></section>
 <section id="tab-code" hidden></section>
 </main>
-<script>window.HWBP_PROJECT = /*__PROJECT__*/null; window.HWBP_MESHES = /*__MESHES__*/null;</script>
+<div id="chat" hidden><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b>Chat</b><button class="btn" id="chatclose" aria-label="Close chat">×</button></div>
+<div id="chatlog"></div><form id="chatform" style="display:flex;gap:6px;margin-top:8px"><input type="text" id="chatinput" placeholder="e.g. replace the display with an e-paper" aria-label="Message" style="flex:1"/><button class="btn primary">Send</button></form></div></div>
+<script>window.HWBP_PROJECT = /*__PROJECT__*/null; window.HWBP_MESHES = /*__MESHES__*/null; window.HWBP_EXTRAS = /*__EXTRAS__*/null; window.HWBP_API = null;</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
@@ -56,20 +67,32 @@ const LABEL={mcu:'MCU',sensor:'Sensor',actuator:'Actuator',power:'Power',module:
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const color=t=>css(TYPE_VAR[t]||'--other');const money=v=>'$'+(Number(v)||0).toFixed(2);
+const API=window.HWBP_API, X=window.HWBP_EXTRAS||{};
 async function load(){
   if(window.HWBP_PROJECT) return window.HWBP_PROJECT;
   const src=new URLSearchParams(location.search).get('src');
   if(!src) return null; const r=await fetch(src); const d=await r.json(); return d.content||d;
 }
 function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+async function api(path,body,method){const r=await fetch(path,{method:method||(body?'POST':'GET'),headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error((d.detail&&(d.detail.message||d.detail.error))||d.detail||r.status);return d;}
 load().then(p=>{ if(!p){document.getElementById('tab-info').innerHTML='<div class="card">Load a project with <code>?src=project.json</code>.</div>';return;} render(p); });
 function render(p){
   document.getElementById('title').textContent=p.projectName||'Project';
   const nodes=p.nodes||[];
-  // ---------------- info
+  const ha=document.getElementById('headeractions');
+  if(API&&API.mode==='share'){
+    ha.innerHTML='<button class="btn" id="star">★ Star</button><button class="btn primary" id="copy">Copy</button>';
+    document.getElementById('star').onclick=async()=>{try{const r=await api('/api/star',{token:API.token});document.getElementById('star').textContent=(r.starred?'★ Starred ':'☆ Star ')+r.starCount;}catch(e){alert('Could not star: '+e.message)}};
+    document.getElementById('copy').onclick=async()=>{try{const r=await api('/api/projects/copy',{token:API.token});location.href='/p/'+r.projectId;}catch(e){alert('Could not copy: '+e.message)}};
+  } else if(API&&API.mode==='project'){
+    ha.innerHTML='<button class="btn primary" id="openchat">Chat</button><a class="btn" href="/api/projects/'+esc(API.projectId)+'/export.zip">Export</a>';
+    document.getElementById('openchat').onclick=()=>{document.getElementById('chat').hidden=false;document.getElementById('chatinput').focus();refreshChat();};
+    document.getElementById('chatclose').onclick=()=>{document.getElementById('chat').hidden=true;};
+    document.getElementById('chatform').onsubmit=sendChat;
+  }
   const bom=p.bom||{};const rollup=bom.rollup||[];const pw=p.power||{};
   const issues=(p.issues||[]).map(i=>`<li><span class="badge sev-${esc(i.severity)}">${esc(i.severity)}</span> ${esc(i.message)}${i.fix?` <span class="muted">— ${esc(i.fix)}</span>`:''}</li>`).join('');
-  document.getElementById('tab-info').innerHTML=`<div class="card"><div class="tags">${(p.notes||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+  document.getElementById('tab-info').innerHTML=`${X.hero?`<div class="card hero">${X.hero}</div>`:''}<div class="card"><div class="tags">${(p.notes||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
   <p>${esc(p.projectDescription||p.originalPrompt||'')}</p></div>
   <div class="grid"><div class="card kpi"><span class="muted small">Parts</span><b>${nodes.length}</b></div>
   <div class="card kpi"><span class="muted small">Est. cost</span><b>${money(bom.estimateTotalUsd ?? nodes.reduce((a,n)=>a+(n.estimatedCost||0)*(n.quantity||1),0))}</b></div>
@@ -78,64 +101,95 @@ function render(p){
   ${rollup.length?`<div class="card"><table><thead><tr><th>Category</th><th class="num">Parts</th><th class="num">Cost</th></tr></thead><tbody>${rollup.map(c=>`<tr><td><b style="text-transform:capitalize">${esc(c.category)}</b></td><td class="num">${c.parts}</td><td class="num">${money(c.cost)}</td></tr>`+c.types.map(t=>`<tr><td>&nbsp;&nbsp;<span class="dot" style="background:${color(t.type)}"></span>${esc(LABEL[t.type]||t.type)}</td><td class="num">${t.parts}</td><td class="num">${money(t.cost)}</td></tr>`).join('')).join('')}</tbody></table></div>`:''}
   ${issues?`<div class="card"><h3 style="margin-top:0">Design review</h3><ul>${issues}</ul></div>`:''}
   ${p.plan?`<div class="card"><h3 style="margin-top:0">Plan</h3><pre style="white-space:pre-wrap">${esc(p.plan)}</pre></div>`:''}`;
-  // ---------------- parts
   const types=[...new Set(nodes.map(n=>n.type))];
   const partsEl=document.getElementById('tab-parts');
-  partsEl.innerHTML=`<div class="card"><label class="small muted" for="filter">Category</label> <select id="filter"><option value="">All (${nodes.length})</option>${types.map(t=>`<option value="${esc(t)}">${esc(LABEL[t]||t)}</option>`).join('')}</select>
-  <div class="scroll"><table><thead><tr><th>Part</th><th class="num">Qty</th><th class="num">Unit</th><th>Why / source</th><th class="num">Subtotal</th></tr></thead><tbody id="partrows"></tbody></table></div></div>
+  partsEl.innerHTML=`<div class="card"><label class="small muted" for="filter">Category</label> <select id="filter"><option value="">All (${nodes.length})</option>${types.map(t=>`<option value="${esc(t)}">${esc(LABEL[t]||t)}</option>`).join('')}</select> <span class="small muted">Click a row for specs, all offers and alternatives.</span>
+  <div style="overflow:auto"><table><thead><tr><th>Part</th><th class="num">Qty</th><th class="num">Unit</th><th>Why / source</th><th class="num">Subtotal</th></tr></thead><tbody id="partrows"></tbody></table></div></div>
   ${(p.suggestions||[]).length?`<div class="card"><h3 style="margin-top:0">Suggestions</h3><table><tbody>${p.suggestions.map(s=>`<tr><td><span class="badge">${esc(s.kind)}</span> ${esc(s.name)}<div class="small muted">${esc((s.reasons||[]).join('; '))}</div></td><td class="muted">${esc(s.nodeId||'')}</td><td class="num">${s.priceDeltaUsd!=null?(s.priceDeltaUsd>0?'+':'')+money(s.priceDeltaUsd).replace('$-','-$'):''}</td></tr>`).join('')}</tbody></table></div>`:''}`;
-  const rows=f=>nodes.filter(n=>!f||n.type===f).map(n=>{const src=(n.research&&n.research.sourcing||[]).find(o=>o.url);return `<tr><td><span class="dot" style="background:${color(n.type)}"></span><b>${esc(n.name)}</b><div class="small muted">${esc(n.productName||n.description||'')}</div><span class="badge" style="color:${color(n.type)}">${esc(LABEL[n.type]||n.type)}</span></td>
+  const detail=n=>{const r=n.research||{};const alts=(p.suggestions||[]).filter(s=>s.nodeId===n.id);
+    return `<tr class="detail"><td colspan="5"><div class="grid"><div><b class="small">Specs</b><table class="small">${(r.specs||[]).slice(0,14).map(s=>`<tr><td class="muted">${esc(s.label)}</td><td>${esc(s.value)}</td></tr>`).join('')||'<tr><td class="muted">—</td></tr>'}</table></div>
+    <div><b class="small">Where to buy</b><ul class="small">${(r.sourcing||[]).map(o=>`<li>${o.url?`<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.vendor)}</a>`:esc(o.vendor)} ${esc(o.price||'')}</li>`).join('')||'<li class="muted">no listings</li>'}</ul>
+    ${r.datasheetUrl?`<a class="small" href="${esc(r.datasheetUrl)}" target="_blank" rel="noopener">Datasheet</a>`:''}</div>
+    <div><b class="small">Why this part</b><ul class="small">${(n.rationale||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li class="muted">—</li>'}</ul>${alts.length?`<b class="small">Alternatives</b><ul class="small">${alts.map(a=>`<li>${esc(a.name)} <span class="muted">${a.priceDeltaUsd!=null?(a.priceDeltaUsd>0?'+':'')+a.priceDeltaUsd.toFixed(2):''}</span></li>`).join('')}</ul>`:''}</div></div></td></tr>`;};
+  const rows=f=>nodes.filter(n=>!f||n.type===f).map(n=>{const src=(n.research&&n.research.sourcing||[]).find(o=>o.url);return `<tr class="part" data-id="${esc(n.id)}" tabindex="0"><td><span class="dot" style="background:${color(n.type)}"></span><b>${esc(n.name)}</b><div class="small muted">${esc(n.productName||n.description||'')}</div><span class="badge" style="color:${color(n.type)}">${esc(LABEL[n.type]||n.type)}</span></td>
   <td class="num">${n.quantity||1}</td><td class="num">~${money(n.estimatedCost)}</td><td class="small">${esc((n.rationale||[]).slice(0,2).join('; '))}${src?`<div><a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.vendor)}${src.price?' '+esc(src.price):''}</a></div>`:''}</td><td class="num">~${money((n.estimatedCost||0)*(n.quantity||1))}</td></tr>`}).join('');
-  const tb=document.getElementById('partrows');tb.innerHTML=rows('');document.getElementById('filter').onchange=e=>tb.innerHTML=rows(e.target.value);
-  // ---------------- wiring
-  drawWiring(p);
-  // ---------------- guide
-  const done=store('hwbp:'+(p.imagePromptSnapshot&&p.imagePromptSnapshot.designHash||p.projectName))||{};
-  const pre=p.instructionPreamble||{tools:[],assumptions:[]};
+  const tb=document.getElementById('partrows');
+  const fill=f=>{tb.innerHTML=rows(f);tb.querySelectorAll('tr.part').forEach(tr=>{const toggle=()=>{const nx=tr.nextElementSibling;if(nx&&nx.classList.contains('detail')){nx.remove();return;}tr.insertAdjacentHTML('afterend',detail(nodes.find(n=>n.id===tr.dataset.id)));};tr.onclick=e=>{if(e.target.tagName!=='A')toggle();};tr.onkeydown=e=>{if(e.key==='Enter')toggle();};});};
+  fill('');document.getElementById('filter').onchange=e=>fill(e.target.value);
+  setupWiring(p);
+  const doneKey='hwbp:'+(p.imagePromptSnapshot&&p.imagePromptSnapshot.designHash||p.projectName);const done=store(doneKey)||{};
+  const pre=p.instructionPreamble||{tools:[],assumptions:[]};const D=X.details||{};
   document.getElementById('tab-guide').innerHTML=`<div class="card"><h3 style="margin-top:0">Tools</h3><div class="tags">${pre.tools.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><h3>Assumptions</h3><ul>${pre.assumptions.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div>`+
-  (p.instructionSteps||[]).map((s,i)=>`<div class="card"><h3 style="margin-top:0">${i+1}. ${esc(s.title||s.id)}</h3>${s.subSteps.map((ss,j)=>`<details><summary><label class="step"><input type="checkbox" data-step="${esc(ss.id)}" ${done[ss.id]?'checked':''}/> ${i+1}.${j+1} ${esc(ss.title)}</label></summary><div class="small muted">Parts: ${esc((ss.partIds||[]).join(', '))}${ss.tools?' · Tools: '+esc(ss.tools.join(', ')):''}</div>${(ss.details||[]).length?`<ul class="small">${ss.details.map(d=>`<li>${esc(d)}</li>`).join('')}</ul>`:''}</details>`).join('')}</div>`).join('');
-  document.querySelectorAll('[data-step]').forEach(cb=>cb.onchange=()=>{done[cb.dataset.step]=cb.checked;store('hwbp:'+(p.imagePromptSnapshot&&p.imagePromptSnapshot.designHash||p.projectName),done)});
-  // ---------------- code
+  (p.instructionSteps||[]).map((s,i)=>`<div class="card"><h3 style="margin-top:0">${i+1}. ${esc(s.title||s.id)}</h3>${s.subSteps.map((ss,j)=>{const d=D[ss.id];return `<details><summary><label class="step"><input type="checkbox" data-step="${esc(ss.id)}" ${done[ss.id]?'checked':''}/> ${i+1}.${j+1} ${esc(ss.title)}</label></summary><div class="small muted">Parts: ${esc((ss.partIds||[]).join(', '))}${ss.tools?' · Tools: '+esc(ss.tools.join(', ')):''}</div>${d?`<p class="small">${esc(d.summary)}</p><ol class="small">${d.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><p class="small"><b>Tip:</b> ${esc(d.tip)}</p>`:''}${API&&API.mode==='project'?`<img alt="Step illustration" loading="lazy" style="max-width:100%;border-radius:8px" src="/api/projects/${esc(API.projectId)}/steps/${esc(s.id)}/${esc(ss.id)}/image.svg"/>`:''}</details>`}).join('')}</div>`).join('');
+  document.querySelectorAll('[data-step]').forEach(cb=>cb.onchange=()=>{done[cb.dataset.step]=cb.checked;store(doneKey,done)});
   const fw=p.firmware||{};document.getElementById('tab-code').innerHTML=Object.keys(fw).length?Object.entries(fw).map(([f,t])=>`<div class="card"><b>${esc(f)}</b><pre>${esc(t)}</pre></div>`).join(''):'<div class="card muted">No firmware in this document.</div>';
-  // ---------------- tabs
   const tabs=[...document.querySelectorAll('nav button')];let mechInit=false;
-  function show(name){tabs.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name));document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='tab-'+name);store('hwbp:tab',name);if(name==='mech'&&!mechInit){mechInit=true;drawMech(p);}}
+  function show(name){tabs.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name));document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='tab-'+name);store('hwbp:tab',name);if(name==='mech'&&!mechInit){mechInit=true;setupMech(p);}}
   tabs.forEach(b=>b.onclick=()=>show(b.dataset.tab));show(new URLSearchParams(location.search).get('tab')||store('hwbp:tab')||'info');
 }
-function drawWiring(p){
-  const L=p.wiringLayout, el=document.getElementById('wiring');
-  if(!L||!L.nodes){el.innerHTML='<p class="muted">No wiring layout in this document.</p>';return;}
-  const meta=L.nodeMeta||{}, m=24, W=L.width+2*m, H=L.height+2*m;
-  const st={data:[css('--ok'),2,''],power:[css('--power'),1.5,'4 4'],ground:[css('--muted'),1,'2 3']};
-  let s=`<svg xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:${Math.min(W,720)}px;height:auto" viewBox="0 0 ${W} ${H}" font-family="Inter,system-ui,sans-serif"><g transform="translate(${m},${m})">`;
-  for(const e of L.edges){const [c,w,d]=st[e.type]||st.data;s+=`<path d="M${e.points.map(q=>q.join(',')).join(' L')}" fill="none" stroke="${c}" stroke-width="${w}" ${d?`stroke-dasharray="${d}"`:''}/>`;
-    if(e.label){const k=Math.floor(e.points.length/2),a=e.points[k-1],b=e.points[k],x=(a[0]+b[0])/2,y=(a[1]+b[1])/2,tw=6.2*e.label.length+8;s+=`<rect x="${x-tw/2}" y="${y-8}" width="${tw}" height="14" rx="3" fill="${css('--surface')}" stroke="${css('--line')}"/><text x="${x}" y="${y+3}" font-size="9" font-weight="700" text-anchor="middle" fill="${c}">${esc(e.label)}</text>`;}}
-  for(const [id,b] of Object.entries(L.nodes)){const n=meta[id]||{},c=color(n.type);s+=`<g><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" fill="${css('--surface')}" stroke="${c}" stroke-width="1.5"/><text x="${b.x+10}" y="${b.y+18}" font-size="9" font-weight="700" fill="${c}">${esc((LABEL[n.type]||n.type||'').toUpperCase())}</text><text x="${b.x+10}" y="${b.y+36}" font-size="13" font-weight="600" fill="${css('--text')}">${esc((n.name||id).slice(0,26))}</text><text x="${b.x+10}" y="${b.y+52}" font-size="10" fill="${css('--muted')}">${esc((n.product||'').slice(0,30))}</text>`;
-    (n.pins||[]).slice(0,8).forEach((pin,k)=>{const cx=b.x+10+(k%4)*46,cy=b.y+66+Math.floor(k/4)*24;s+=`<rect x="${cx}" y="${cy}" width="42" height="18" rx="9" fill="none" stroke="${c}"/><text x="${cx+21}" y="${cy+12.5}" font-size="8.5" text-anchor="middle" fill="${c}">${esc(pin.length>7?pin.slice(0,6)+'…':pin)}</text>`});s+='</g>';}
-  el.innerHTML=s+'</g></svg>';
+function setupWiring(p){
+  const el=document.getElementById('wiring'),tools=document.getElementById('wtools');
+  const layouts={simple:p.wiringLayout,enriched:X.enriched};
+  if(!layouts.simple||!layouts.simple.nodes){el.innerHTML='<p class="muted">No wiring layout in this document.</p>';return;}
+  const hidden=new Set();let mode='simple';
+  const cats=[...new Set(Object.values(layouts.simple.nodeMeta||{}).map(m=>m.type))];
+  tools.innerHTML=`<button class="btn" data-mode="simple" aria-pressed="true">Simple</button>${layouts.enriched?'<button class="btn" data-mode="enriched" aria-pressed="false">Enriched</button>':''}
+  ${['data','power','ground'].map(t=>`<label><input type="checkbox" data-edge="${t}" checked/> ${t.toUpperCase()}</label>`).join('')}
+  ${cats.map(t=>`<label><input type="checkbox" data-cat="${esc(t)}" checked/><span class="dot" style="background:${color(t)}"></span>${esc(LABEL[t]||t)}</label>`).join('')}
+  <button class="btn" data-zoom="in" aria-label="Zoom in">+</button><button class="btn" data-zoom="out" aria-label="Zoom out">−</button><button class="btn" data-zoom="fit">Fit</button>`;
+  let vb=null;
+  const draw=()=>{const L=layouts[mode],meta=L.nodeMeta||{},m=24,W=L.width+2*m,H=L.height+2*m;vb=vb||[0,0,W,H];
+    const st={data:[css('--ok'),2,''],power:[css('--power'),1.5,'4 4'],ground:[css('--muted'),1,'2 3']};
+    const vis=id=>!hidden.has('cat:'+((meta[id]||{}).type));
+    let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(' ')}" preserveAspectRatio="xMidYMid meet" font-family="Inter,system-ui,sans-serif"><g transform="translate(${m},${m})">`;
+    for(const e of L.edges){if(hidden.has('edge:'+e.type)||!vis(e.source)||!vis(e.target))continue;const [c,w,d]=st[e.type]||st.data;s+=`<path d="M${e.points.map(q=>q.join(',')).join(' L')}" fill="none" stroke="${c}" stroke-width="${w}" ${d?`stroke-dasharray="${d}"`:''}/>`;
+      if(e.label){const k=Math.floor(e.points.length/2),a=e.points[k-1],b=e.points[k],x=(a[0]+b[0])/2,y=(a[1]+b[1])/2,tw=6.2*e.label.length+8;s+=`<rect x="${x-tw/2}" y="${y-8}" width="${tw}" height="14" rx="3" fill="${css('--surface')}" stroke="${css('--line')}"/><text x="${x}" y="${y+3}" font-size="9" font-weight="700" text-anchor="middle" fill="${c}">${esc(e.label)}</text>`;}}
+    for(const [id,b] of Object.entries(L.nodes)){if(!vis(id))continue;const n=meta[id]||{},c=color(n.type);s+=`<g><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="8" fill="${css('--surface')}" stroke="${c}" stroke-width="1.5"/><text x="${b.x+10}" y="${b.y+18}" font-size="9" font-weight="700" fill="${c}">${esc((LABEL[n.type]||n.type||'').toUpperCase())}</text><text x="${b.x+10}" y="${b.y+36}" font-size="13" font-weight="600" fill="${css('--text')}">${esc((n.name||id).slice(0,26))}</text><text x="${b.x+10}" y="${b.y+52}" font-size="10" fill="${css('--muted')}">${esc((n.product||'').slice(0,30))}</text>`;
+      (n.pins||[]).slice(0,8).forEach((pin,k)=>{const cx=b.x+10+(k%4)*46,cy=b.y+66+Math.floor(k/4)*24;if(cy+18>b.y+b.h)return;s+=`<rect x="${cx}" y="${cy}" width="42" height="18" rx="9" fill="none" stroke="${c}"/><text x="${cx+21}" y="${cy+12.5}" font-size="8.5" text-anchor="middle" fill="${c}">${esc(pin.length>7?pin.slice(0,6)+'…':pin)}</text>`});s+='</g>';}
+    el.innerHTML=s+'</g></svg>';};
+  tools.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.mode){mode=b.dataset.mode;vb=null;tools.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b));draw();}
+    if(b.dataset.zoom){if(b.dataset.zoom==='fit'){vb=null;}else{const k=b.dataset.zoom==='in'?0.8:1.25;const cx=vb[0]+vb[2]/2,cy=vb[1]+vb[3]/2;vb=[cx-vb[2]*k/2,cy-vb[3]*k/2,vb[2]*k,vb[3]*k];}draw();}};
+  tools.onchange=e=>{const t=e.target;const key=t.dataset.edge?'edge:'+t.dataset.edge:'cat:'+t.dataset.cat;t.checked?hidden.delete(key):hidden.add(key);draw();};
+  let drag=null;el.onpointerdown=e=>{drag=[e.clientX,e.clientY];el.setPointerCapture(e.pointerId);el.style.cursor='grabbing'};el.onpointerup=()=>{drag=null;el.style.cursor='grab'};
+  el.onpointermove=e=>{if(!drag||!vb)return;const k=vb[2]/el.clientWidth;vb=[vb[0]-(e.clientX-drag[0])*k,vb[1]-(e.clientY-drag[1])*k,vb[2],vb[3]];drag=[e.clientX,e.clientY];draw();};
+  el.onwheel=e=>{e.preventDefault();const k=Math.exp(e.deltaY*0.001);const cx=vb[0]+vb[2]/2,cy=vb[1]+vb[3]/2;vb=[cx-vb[2]*k/2,cy-vb[3]*k/2,vb[2]*k,vb[3]*k];draw();};
+  draw();
 }
-function drawMech(p){
-  const L=p.mechLayout, canvas=document.getElementById('mech'), info=document.getElementById('mechinfo');
+function setupMech(p){
+  const L=p.mechLayout, canvas=document.getElementById('mech'), info=document.getElementById('mechinfo'), tools=document.getElementById('mtools');
   if(!L||!L.parts||!window.THREE){info.textContent=window.THREE?'No mechanical layout.':'3D view needs three.js (offline?)';return;}
   const T=window.THREE, r=new T.WebGLRenderer({canvas,antialias:true,alpha:true});r.setPixelRatio(Math.min(2,devicePixelRatio));
-  const scene=new T.Scene(), cam=new T.PerspectiveCamera(45,1,0.1,5000);scene.add(new T.AmbientLight(0xffffff,0.7));const dl=new T.DirectionalLight(0xffffff,0.6);dl.position.set(1,2,1.5);scene.add(dl);
-  const lo=L.bbox.min,hi=L.bbox.max,ctr=[(lo[0]+hi[0])/2,(lo[1]+hi[1])/2,(lo[2]+hi[2])/2],diag=Math.hypot(...L.bbox.size)||100;
+  const scene=new T.Scene(), cam=new T.PerspectiveCamera(45,1,0.1,8000);scene.add(new T.AmbientLight(0xffffff,0.7));const dl=new T.DirectionalLight(0xffffff,0.6);dl.position.set(1,2,1.5);scene.add(dl);
+  const EX=X.exploded;const bb=(EX||L).bbox;const lo=L.bbox.min,hi=L.bbox.max,ctr=[(lo[0]+hi[0])/2,(lo[1]+hi[1])/2,(lo[2]+hi[2])/2],diag=Math.hypot(...bb.size)||100;
   const grid=new T.GridHelper(diag*2,20,0x888888,0x444444);grid.position.y=lo[1];scene.add(grid);
-  const meshes=window.HWBP_MESHES||{};
+  const meshes=window.HWBP_MESHES||{};const objs={};
   for(const [id,part] of Object.entries(L.parts)){let geo;const mm=meshes[id];
     if(mm){geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(mm.v,3));geo.setIndex(mm.f);geo.computeVertexNormals();}
     else geo=part.shape==='cylinder'?new T.CylinderGeometry(Math.min(part.size[0],part.size[2])/2,Math.min(part.size[0],part.size[2])/2,part.size[1],32):new T.BoxGeometry(...part.size);
     const c=new T.Color(part.color), elec=['mcu','sensor','actuator','power','module','display'].includes(part.type);
     const mesh=new T.Mesh(geo,new T.MeshStandardMaterial({color:c,transparent:true,opacity:mm?0.85:(elec?0.35:0.25),side:T.DoubleSide,roughness:.8}));
-    mesh.position.set(...part.pos);scene.add(mesh);const edges=new T.LineSegments(new T.EdgesGeometry(geo,15),new T.LineBasicMaterial({color:c}));edges.position.copy(mesh.position);scene.add(edges);}
+    const edges=new T.LineSegments(new T.EdgesGeometry(geo,15),new T.LineBasicMaterial({color:c}));const g=new T.Group();g.add(mesh);g.add(edges);g.position.set(...part.pos);scene.add(g);objs[id]={g,type:part.type};}
   let th=0.8,ph=0.9,dist=diag*1.6;const resize=()=>{const w=canvas.clientWidth,h=canvas.clientHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();};
   const draw=()=>{cam.position.set(ctr[0]+dist*Math.sin(ph)*Math.cos(th),ctr[1]+dist*Math.cos(ph),ctr[2]+dist*Math.sin(ph)*Math.sin(th));cam.lookAt(...ctr);r.render(scene,cam);};
+  const types=[...new Set(Object.values(L.parts).map(q=>q.type))];
+  tools.innerHTML=`${EX?'<button class="btn" id="explode" aria-pressed="false">Explode</button>':''}${types.map(t=>`<label><input type="checkbox" data-type="${esc(t)}" checked/><span class="dot" style="background:${color(t)}"></span>${esc(LABEL[t]||t)}</label>`).join('')}`;
+  tools.onchange=e=>{const t=e.target.dataset.type;for(const o of Object.values(objs))if(o.type===t)o.g.visible=e.target.checked;draw();};
+  const ex=document.getElementById('explode');if(ex)ex.onclick=()=>{const on=ex.getAttribute('aria-pressed')!=='true';ex.setAttribute('aria-pressed',on);for(const [id,o] of Object.entries(objs))o.g.position.set(...((on?EX:L).parts[id].pos));draw();};
   let drag=null;canvas.onpointerdown=e=>{drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId)};canvas.onpointerup=()=>drag=null;
   canvas.onpointermove=e=>{if(!drag)return;th+=(e.clientX-drag[0])*0.01;ph=Math.max(0.1,Math.min(3.0,ph-(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];draw();};
   canvas.onwheel=e=>{e.preventDefault();dist*=Math.exp(e.deltaY*0.001);draw();};addEventListener('resize',()=>{resize();draw()});resize();draw();
   info.textContent=`X ${Math.round(L.bbox.size[0])} mm · Y ${Math.round(L.bbox.size[1])} mm · Z ${Math.round(L.bbox.size[2])} mm · ${Object.keys(L.parts).length} parts`;
   document.getElementById('mechtree').innerHTML='<h3 style="margin-top:0">Assembly</h3>'+(L.tree||[]).map(row=>`<div style="padding-left:${row.depth*16}px">${row.depth?'└ ':''}<span class="dot" style="background:${color(row.type)}"></span>${esc(row.name)}</div>`).join('')+((L.collisions||[]).length?`<p class="sev-warning small">Interference: ${L.collisions.map(c=>c.join(' × ')).join(', ')}</p>`:'');
 }
+async function refreshChat(){
+  if(!API||API.mode!=='project')return;const log=document.getElementById('chatlog');
+  try{const s=await api(`/api/projects/${API.projectId}/chat`);
+    log.innerHTML=s.turns.map(t=>`<div class="turn"><b>${esc(t.prompt)}</b><div class="small muted">${esc(t.status)}${t.resultKind?' · '+esc(t.resultKind):''}</div>${t.responseText?`<div class="small">${esc(t.responseText)}</div>`:''}${t.plan?`<div class="small">Plan: ${esc(t.plan.plan)}</div>`:''}${t.status==='awaiting_approval'?`<div class="actions"><button class="btn primary" data-op="approve" data-turn="${esc(t.id)}">Approve</button><button class="btn" data-op="dismiss" data-turn="${esc(t.id)}">Dismiss</button></div>`:''}</div>`).join('')||'<p class="small muted">Ask about the design or request a change.</p>';
+    log.querySelectorAll('[data-op]').forEach(b=>b.onclick=async()=>{try{await api(`/api/projects/${API.projectId}/chat/${b.dataset.turn}/${b.dataset.op}`,{});if(b.dataset.op==='approve')location.reload();else refreshChat();}catch(e){alert('Could not '+b.dataset.op+': '+e.message)}});
+    log.scrollTop=log.scrollHeight;}catch(e){log.innerHTML='<p class="small sev-error">Chat unavailable: '+esc(e.message)+'</p>';}
+}
+async function sendChat(e){e.preventDefault();const inp=document.getElementById('chatinput');const msg=inp.value.trim();if(!msg)return;inp.value='';
+  try{await api(`/api/projects/${API.projectId}/chat`,{message:msg,autoApprove:false});}catch(err){alert('Message failed: '+err.message);}refreshChat();}
 })();
 </script>
 </body>

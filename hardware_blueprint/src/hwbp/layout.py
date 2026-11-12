@@ -320,3 +320,54 @@ def render_svg(layout: dict, node_meta: dict[str, dict], dark: bool = False, mar
         parts.append(f'<text x="{lx + 34}" y="{legend_y + 4}" font-size="10" fill="{fg}">{t.upper()}</text>')
     parts.append("</g></svg>")
     return "\n".join(parts)
+
+
+# ------------------------------------------------------------------------------ enriched wiring mode
+RAIL_W, RAIL_H = 120.0, 44.0
+
+
+def enriched_wiring_layout(content) -> dict:
+    """Per-connection edges labelled with pins, power/ground routed through synthetic rail nodes
+    (``rail:5V``, ``rail:3.3V``, ``rail:GND``) — the reference's "Enrich wiring" view."""
+    elec = [n for n in content.nodes if n.category == "electrical"]
+    ids = [n.id for n in elec]
+    edges: list[dict] = []
+    rails: dict[str, str] = {}
+
+    def rail(name: str) -> str:
+        rid = f"rail:{name}"
+        rails[rid] = name
+        return rid
+
+    used_pins: dict[str, set[str]] = {i: set() for i in ids}
+    for c in content.electrical_connections:
+        if c.source not in used_pins or c.target not in used_pins:
+            continue
+        if c.source_pin:
+            used_pins[c.source].add(c.source_pin)
+        if c.target_pin:
+            used_pins[c.target].add(c.target_pin)
+        if c.type in ("power", "ground"):
+            r = rail("GND" if c.type == "ground" else (c.net or c.voltage or "PWR"))
+            if not any(e["source"] == c.source and e["target"] == r for e in edges):
+                edges.append({"type": c.type, "source": c.source, "target": r, "label": c.source_pin or ""})
+            edges.append({"type": c.type, "source": r, "target": c.target, "label": c.target_pin or ""})
+        else:
+            label = f"{c.source_pin}→{c.target_pin}" if c.source_pin and c.target_pin else (c.protocol or "")
+            edges.append({"type": "data", "source": c.source, "target": c.target, "label": label})
+    all_ids = ids + sorted(rails)
+    sizes = {r: (RAIL_W, RAIL_H) for r in rails}
+    lay = layered_layout(all_ids, edges, sizes)
+    meta = {
+        n.id: {
+            "name": n.name,
+            "product": n.product_name,
+            "type": n.type,
+            "pins": sorted(used_pins[n.id]) or (n.pins or []),
+        }
+        for n in elec
+    }
+    meta.update({r: {"name": f"{name} rail", "product": "", "type": "power", "pins": []} for r, name in rails.items()})
+    lay["nodeMeta"] = meta
+    lay["mode"] = "enriched"
+    return lay

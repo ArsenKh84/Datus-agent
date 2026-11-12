@@ -362,3 +362,19 @@ def build_bom(nodes: list[Node], build_qty: int = 1, consolidate: bool = True, u
         [q for nid, q in picked.items() if any(ln.node_id == nid and not ln.estimate for ln in lines)]
     )
     return Bom(lines, build_qty, round(ship, 2))
+
+
+def merge_by_product(lines: list[BomLine]) -> list[dict]:
+    """PARTS-table rows merged by product (reference behaviour), but priced correctly: the merged subtotal is the sum
+    of the member lines (the reference reuses the first row's unit price for every duplicate)."""
+    groups: dict[str, list[BomLine]] = {}
+    for ln in lines:
+        groups.setdefault((ln.product_name or ln.name).lower(), []).append(ln)
+    out = []
+    for grp in groups.values():
+        qty = sum(g.qty for g in grp)
+        sub = round(sum(g.subtotal_usd for g in grp), 2)
+        out.append({"product": grp[0].product_name or grp[0].name, "nodeIds": [g.node_id for g in grp], "type": grp[0].type,
+                    "category": grp[0].category, "qty": qty, "unitUsd": round(sub / qty, 4) if qty else 0.0, "subtotalUsd": sub,
+                    "estimate": any(g.estimate for g in grp)})  # fmt: skip
+    return out

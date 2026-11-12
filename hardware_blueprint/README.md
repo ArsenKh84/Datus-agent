@@ -8,7 +8,8 @@ electrical engineering that the reference leaves to an LLM.
 
 - [`docs/ANALYSIS.md`](docs/ANALYSIS.md): how blueprint.io works (architecture, protocol, algorithms, constants, weaknesses)
 - [`docs/DECISION_ENGINE.md`](docs/DECISION_ENGINE.md): every algorithm in this engine, with formulas
-- [`docs/PROTOCOL.md`](docs/PROTOCOL.md): HTTP API (generation runs, chat/edits, parts, CAD, picture→mesh, export)
+- [`docs/PROTOCOL.md`](docs/PROTOCOL.md): HTTP API (generation runs, chat/edits, parts, CAD, picture→mesh, export, collaboration, community, accounts)
+- [`docs/PARITY.md`](docs/PARITY.md): feature-by-feature parity checklist vs blueprint.io (87 done, 0 missing, 7 not applicable with reasons), each verified by an executable check, plus the browser end-to-end results
 - [`schema/project.schema.json`](schema/project.schema.json): JSON Schema of the project document
 - [`examples/`](examples): generated projects (open `viewer.html`) and picture→mesh outputs
 
@@ -49,19 +50,27 @@ uv run hwbp serve --port 8000
 | Component selection | `selection.py` | weighted set cover, MCU feasibility (pin-allocation dry run), multi-criteria scoring, named-technology filter, drivers, budget downgrades, ranked alternatives (**component offering**) |
 | Wiring | `wiring.py`, `layout.py` | bus/pin allocation, UART crossover, level-shifter insertion, ground net, ERC, reference-style edge labels, layered (Sugiyama) layout, SVG |
 | Power | `power.py` | rail planning, battery sizing from an energy budget, charger/protection, efficiency-ranked regulator chains, current propagation, runtime and solar balance |
-| Mechanics | `mech.py` | skyline packing, enclosure/lid/chassis/arm synthesis, reference-compatible solver (delta semantics, BFS tree), interference check |
-| Meshes / CAD | `mesh.py`, `cad.py` | watertight primitives, STL/OBJ/GLB, feature specs per part, CAD jobs, credit wallet, print-cost estimate |
-| Picture → mesh / CAD | `image.py` | PNG/PGM/PPM decoding (Pillow optional), Otsu, contour tracing, RDP, **holes**, ear clipping; extrude / relief / revolve |
+| Mechanics | `mech.py` | skyline packing, enclosure/lid/chassis/arm synthesis, reference-compatible solver (delta semantics, BFS tree, sibling grid), interference check, explode view, joints (rigid/slider/revolute), heal/enrich for foreign docs |
+| Meshes / CAD | `mesh.py`, `cad.py` | watertight primitives, STL/OBJ/GLB/**STEP** (faceted B-rep, validated with an independent parser), feature specs per part, CAD jobs, credit wallet, print-cost estimate |
+| Picture → mesh / CAD | `image.py` | PNG/PGM/PPM decoding (Pillow optional), Otsu, contour tracing, RDP, **holes** (bridged ear clipping), outline-drawing auto-fill; extrude / relief / revolve |
 | Picture → blueprint | `image.py`, `api.py` | silhouette → enclosure form factor; pluggable `VisionModel` → requirements prompt |
 | Pricing / BOM | `pricing.py` | price parsing, price breaks, MOQ/pack, stock, vendor trust, shipping-aware consolidation, roll-ups, CSV |
 | Enrichment | `enrichment.py` | canonicalisation (id/MPN/name/search/transient), spec sheets, sourcing providers (Nexar GraphQL adapter), research queries |
 | Guide / firmware | `instructions.py`, `firmware.py` | fabricate → wire → bringup → assemble with real pins; PlatformIO project from the pin map |
 | Edits | `edits.py` | reference-format edit plans with auto-repair, NL edits → requirement overrides, optimistic revisions |
-| Protocol | `api.py` | FastAPI server mirroring the reference API (long-poll runs + SSE, 409 conflicts, CAD jobs, publish) |
+| Protocol | `api.py`, `api_ext.py` | FastAPI server mirroring the reference API: long-poll runs + SSE, run questions/retry, image upload, chat turns with approval, WebSocket events, 409 conflicts, CAD jobs + STEP, exports |
+| Services | `services.py` | accounts/plans/credits, collaboration (roles, invitations, share links), community (feed, stars, trending, stats, copy), notes with conflicts, input images |
+| Renders / ideas | `render.py`, `ideas.py` | isometric hero/step images (x-ray shells), part icons; idea wizard, suggested prompts, sub-step details, part descriptions |
+| Web UI | `viewer/studio.html`, `viewer/index.html` | studio (prompt, upload, draw, ideas, live progress, community, stats) and project page (parts detail, simple/enriched wiring with toggles/zoom/pan, 3D with explode/type filters, instruction details, chat approve flow, star/copy) |
 
 ## Verified
 
-- 104 tests (`uv run pytest`), 97 % line coverage, ruff clean.
+- 128 tests (`uv run pytest`), 97 % line coverage, ruff clean.
+- Parity: `uv run python scripts/verify_parity.py` → 87 done / 0 failing / 0 missing / 7 not applicable.
+- Browser end-to-end against a live server (`uv run hwbp serve --port 8765`, then
+  `node scripts/e2e_ui.js http://127.0.0.1:8765 docs/e2e`): 21 / 21 checks pass (studio draw → generate → project
+  page → part details → enriched wiring → explode → chat approve → publish → star → copy; no JS errors; no overflow
+  at 375 px).
 - The mech solver reproduces blueprint.io's own MECH output for a published project: bounding box
   155 × 32.5 × 107.5 mm, same assembly tree, same CAD-eligible count. It also flagged two interferences in that
   LLM-generated layout.
@@ -76,4 +85,6 @@ uv run hwbp serve --port 8000
 - The default requirement extractor is rule-based. Inferring a device's *function* from a photo requires a vision
   LLM (`VisionModel`); offline, a picture only sets the form factor (or becomes a mesh).
 - Meshes are parametric/functional (trays, lids with windows, mounts, plates, extrusions), not free-form industrial
-  design. STEP export is not implemented.
+  design. STEP is a faceted (triangulated) B-rep, not NURBS surfaces.
+- Payments (Stripe), analytics/ad pixels and affiliate monetisation are deliberately not replicated; plan/credit
+  purchases are simulated ledger entries. Identity is a header (`X-User-Id`) — plug in real auth for production.

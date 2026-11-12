@@ -1,0 +1,107 @@
+[
+ {
+  "name": "studio: stats render",
+  "ok": true,
+  "detail": "0projects created0accounts0published"
+ },
+ {
+  "name": "studio: need-an-idea suggests projects",
+  "ok": true,
+  "detail": "4-Axis Robotic Arm"
+ },
+ {
+  "name": "studio: drawing attached as input image",
+  "ok": true,
+  "detail": "drawing \u00b7 0df7b313"
+ },
+ {
+  "name": "studio: drawing -> 3D STL download",
+  "ok": true,
+  "detail": "STL: 79.47 \u00d7 6 \u00d7 54.21 mm, 0 hole(s), watertight true"
+ },
+ {
+  "name": "studio: generation phases reach done",
+  "ok": true,
+  "detail": "7/7 phases"
+ },
+ {
+  "name": "project: hero image on Info",
+  "ok": true,
+  "detail": "/p/1e88d4a15f26"
+ },
+ {
+  "name": "project: part detail panel opens",
+  "ok": true,
+  "detail": "SpecspinsGPIO0,GPIO1,GPIO2,GPIO3,GPIO4,GPIO5,GPIO6,GPIO7,GPI"
+ },
+ {
+  "name": "project: wiring enriched mode adds rail nodes",
+  "ok": true,
+  "detail": "6 -> 10 nodes"
+ },
+ {
+  "name": "project: POWER toggle hides power edges",
+  "ok": true,
+  "detail": "30 -> 21 edges"
+ },
+ {
+  "name": "project: wiring zoom changes viewBox",
+  "ok": true,
+  "detail": "0 0 2728 784 -> 272.79999999999995 78.39999999999998 2182.4 627.2"
+ },
+ {
+  "name": "project: mech explode toggles",
+  "ok": true,
+  "detail": "aria-pressed=true"
+ },
+ {
+  "name": "project: instruction details show tip",
+  "ok": true,
+  "detail": " 1.1 3D print 2 part(s) in PETGParts: enclosure_base, enclosure_lid \u00b7 Tools: 3D "
+ },
+ {
+  "name": "project: chat edit produces a plan awaiting approval",
+  "ok": true,
+  "detail": "add a buzzerawaiting_approvalPlan: add Main Controller, Buzzer; remove Main ControllerAppr"
+ },
+ {
+  "name": "project: approved edit applied (buzzer in parts)",
+  "ok": true,
+  "detail": "after reload"
+ },
+ {
+  "name": "share: star button",
+  "ok": true,
+  "detail": "\u2605 Starred 1"
+ },
+ {
+  "name": "share: copy creates my project",
+  "ok": true,
+  "detail": "/p/6860b1bf8fbc"
+ },
+ {
+  "name": "studio: community feed lists the published project",
+  "ok": true,
+  "detail": "Portable Radar Touchscreen"
+ },
+ {
+  "name": "studio: my projects list",
+  "ok": true,
+  "detail": "2 projects"
+ },
+ {
+  "name": "mobile 375px: no horizontal overflow on studio",
+  "ok": true,
+  "detail": "false"
+ },
+ {
+  "name": "mobile 375px: no horizontal overflow on project",
+  "ok": true,
+  "detail": "false"
+ },
+ {
+  "name": "no JS errors / alerts",
+  "ok": true,
+  "detail": ""
+ }
+]

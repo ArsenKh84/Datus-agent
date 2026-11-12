@@ -593,12 +593,27 @@ def silhouette(
 
 
 def image_to_mesh(
-    data: bytes, mode: str = "extrude", width_mm: float = 100.0, height_mm: float = 10.0, tolerance_px: float = 1.5
+    data: bytes,
+    mode: str = "extrude",
+    width_mm: float = 100.0,
+    height_mm: float = 10.0,
+    tolerance_px: float = 1.5,
+    fill: str | bool = "auto",
 ) -> tuple[M.Mesh, dict]:
-    """Picture -> watertight mesh. Returns (mesh, report)."""
+    """Picture -> watertight mesh. Returns (mesh, report).
+
+    ``fill``: True drops holes (solid silhouette), False keeps them, "auto" keeps them unless the holes cover more
+    than half of the outline's area — then the picture is an *outline drawing* (a sketched border) and is filled.
+    """
     sil, mask, img = silhouette(data, width_mm, tolerance_px)
+    holes = sil.holes_mm
+    if fill == "auto":
+        outer = abs(signed_area(sil.outline_mm)) or 1.0
+        fill = sum(abs(signed_area(h)) for h in holes) / outer > 0.5
+    if fill:
+        holes = []
     if mode == "extrude":
-        m = extrude_polygon(sil.outline_mm, height_mm, name="extrusion", holes=sil.holes_mm)
+        m = extrude_polygon(sil.outline_mm, height_mm, name="extrusion", holes=holes)
     elif mode == "relief":
         m = relief_mesh(img, width_mm, base_mm=max(0.6, height_mm * 0.25), relief_mm=height_mm * 0.75)
     elif mode == "revolve":
@@ -608,7 +623,8 @@ def image_to_mesh(
     report = {
         "mode": mode,
         "outlineVertices": sil.vertices,
-        "holes": len(sil.holes_mm),
+        "holes": len(holes),
+        "filledOutline": bool(fill) and bool(sil.holes_mm),
         "silhouette": {
             "widthMm": sil.width_mm,
             "depthMm": sil.depth_mm,

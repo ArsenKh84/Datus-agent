@@ -70,6 +70,25 @@ def export_zip(content: ProjectContent, build_qty: int = 1, include_meshes: bool
     return buf.getvalue()
 
 
+def viewer_extras(content: ProjectContent) -> dict:
+    """Data the static viewer can't compute itself: enriched wiring, exploded layout, step details, hero image."""
+    from hwbp.ideas import substep_detail
+    from hwbp.layout import enriched_wiring_layout
+    from hwbp.mech import explode_layout
+    from hwbp.render import project_image
+
+    extras: dict = {"details": {}}
+    if content.nodes:
+        extras["enriched"] = enriched_wiring_layout(content)
+    if content.mech_layout and content.mech_layout.get("parts"):
+        extras["exploded"] = explode_layout(content.mech_layout)
+        extras["hero"] = project_image(content)[0]
+    for st in content.instruction_steps:
+        for sub in st.sub_steps:
+            extras["details"][sub.id] = substep_detail(content, st.id, sub.id)
+    return extras
+
+
 def render_viewer(content: ProjectContent, with_meshes: bool = True) -> str:
     """Self-contained viewer HTML with the project (and part meshes) embedded."""
     from importlib.resources import files
@@ -77,8 +96,102 @@ def render_viewer(content: ProjectContent, with_meshes: bool = True) -> str:
     from hwbp.cad import part_mesh_json
 
     tpl = files("hwbp").joinpath("viewer/index.html").read_text(encoding="utf-8")
-    doc = json.dumps(content.dump()).replace("</", "<\\/")
+
+    def js(obj) -> str:
+        return json.dumps(obj).replace("</", "<\\/")
+
     meshes = "null"
     if with_meshes and content.mech_layout:
-        meshes = json.dumps(part_mesh_json(content, content.mech_layout)).replace("</", "<\\/")
-    return tpl.replace("/*__PROJECT__*/null", doc, 1).replace("/*__MESHES__*/null", meshes, 1)
+        meshes = js(part_mesh_json(content, content.mech_layout))
+    return (
+        tpl.replace("/*__PROJECT__*/null", js(content.dump()), 1)
+        .replace("/*__MESHES__*/null", meshes, 1)
+        .replace("/*__EXTRAS__*/null", js(viewer_extras(content)), 1)
+    )
+
+
+CAD_FORMATS = {"stl": ("STL", "stl"), "step": ("STEP", "step"), "glb": ("GLB", "glb"), "obj": ("OBJ", "obj")}
+FILE_KINDS = (
+    "project.json",
+    "bom.csv",
+    "guide.md",
+    "wiring.svg",
+    "wiring_enriched.svg",
+    "viewer.html",
+    "hero.svg",
+    "firmware.zip",
+)
+
+
+def export_cad(
+    content: ProjectContent, formats: list[str] | None = None, node_ids: list[str] | None = None
+) -> tuple[bytes, dict]:
+    """ZIP with CAD/<FORMAT>/<node>.<ext> per selected layout part + CONTENTS.txt; returns (zip bytes, counts)."""
+    from hwbp.cad import ParametricGenerator, cad_eligible
+
+    formats = [f.lower() for f in (formats or ["stl", "step", "glb"])]
+    bad = [f for f in formats if f not in CAD_FORMATS]
+    if bad:
+        raise ValueError(f"unsupported CAD format(s): {bad}")
+    eligible = {n.id: n for n in cad_eligible(content)}
+    wanted = node_ids or sorted(eligible)
+    omitted = [i for i in wanted if i not in eligible]
+    gen = ParametricGenerator(content)
+    buf = io.BytesIO()
+    lines = [f"{content.project_name} — CAD export (units: mm)", ""]
+    n_files = 0
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for nid in [i for i in wanted if i in eligible]:
+            mesh = gen.generate(eligible[nid], None, {})
+            for f in formats:
+                folder, ext = CAD_FORMATS[f]
+                z.writestr(f"CAD/{folder}/{nid}.{ext}", _encode_mesh(f, mesh, nid))
+                n_files += 1
+            lines.append(
+                f"- {nid}: {eligible[nid].name} ({mesh.size()[0]:.1f} x {mesh.size()[2]:.1f} x {mesh.size()[1]:.1f} mm)"
+            )
+        if omitted:
+            lines += ["", "Omitted (not CAD-eligible: fasteners/misc are bought, not modelled):"] + [
+                f"- {i}" for i in omitted
+            ]
+        z.writestr("CONTENTS.txt", "\n".join(lines) + "\n")
+    return buf.getvalue(), {"downloaded": n_files, "omitted": len(omitted), "parts": len(wanted) - len(omitted)}
+
+
+def _encode_mesh(fmt: str, mesh: M.Mesh, name: str) -> bytes:
+    if fmt == "stl":
+        return M.to_stl_binary(mesh)
+    if fmt == "step":
+        return M.to_step([mesh], name=name).encode()
+    if fmt == "glb":
+        return M.to_glb([M.SceneNode(name, mesh)])
+    return M.to_obj([mesh]).encode()
+
+
+def export_file(content: ProjectContent, kind: str, build_qty: int = 1) -> tuple[bytes, str]:
+    """Single-file export -> (bytes, media type)."""
+    from hwbp.layout import enriched_wiring_layout
+    from hwbp.render import project_image
+
+    if kind == "project.json":
+        return json.dumps(content.dump(), indent=2).encode(), "application/json"
+    if kind == "bom.csv":
+        return build_bom(content.nodes, build_qty).to_csv().encode(), "text/csv"
+    if kind == "guide.md":
+        return guide_markdown(content).encode(), "text/markdown"
+    if kind == "wiring.svg":
+        return wiring_svg(content).encode(), "image/svg+xml"
+    if kind == "wiring_enriched.svg":
+        lay = enriched_wiring_layout(content)
+        return render_svg(lay, lay["nodeMeta"]).encode(), "image/svg+xml"
+    if kind == "viewer.html":
+        return render_viewer(content).encode(), "text/html"
+    if kind == "hero.svg":
+        return project_image(content)[0].encode(), "image/svg+xml"
+    if kind == "firmware.zip":
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            for path, text in (content.firmware or {}).items():
+                z.writestr(path, text)
+        return buf.getvalue(), "application/zip"
+    raise ValueError(f"unknown export kind {kind!r}; expected one of {FILE_KINDS}")

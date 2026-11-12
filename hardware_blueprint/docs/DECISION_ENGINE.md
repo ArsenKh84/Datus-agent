@@ -110,6 +110,15 @@ mountsFor implicit edges, undirected BFS tree from the largest enclosure/structu
 hold/top/beside rules, component packing (30 mm), bounding box, and an AABB interference check (contained parts —
 boards inside a shell — are allowed).
 
+**Sibling grid**: several implicit "top" children of one parent are laid out in a centred grid (largest nearest the
+centre, rows along X, wrapping along Z, 5 mm gaps). **Explode**: offset = (|half-extents|·1.5 + 0.05·diagonal)·0.9
+along unit(part − bbox centre) (golden-angle fallback), then ≤ 30 de-overlap sweeps along the least-penetration axis.
+**Joints** (assembly v2): one rigid joint per tree edge (offset = child − parent); a slider translates the child
+subtree along its axis by `pose` mm, a revolute rotates the subtree by `pose`° about the axis through the child
+(Rodrigues), with rotated AABB extents |R|·half-extents. **Heal/enrich** (foreign docs): orphan layout parts are
+attached to their mount target or the root with implicit placement, then every missing `delta` is back-filled from
+the solved positions.
+
 ## 7. Meshes & CAD (`mesh.py`, `cad.py`, `image.py`)
 Closed, consistently wound primitives (box, open tray, frame with window, cylinder, tube, standoff plate) — verified
 by an exact edge-pairing manifold check and divergence-theorem volume. Writers: binary/ASCII STL, OBJ, GLB (glTF 2.0,
@@ -122,7 +131,13 @@ Metal structural parts: volume × $/cm³ × 3 (stock waste) + $25 machining.
 border-majority polarity → largest 4-connected component → Moore-neighbour boundary → Ramer–Douglas–Peucker →
 holes = enclosed background components → bridged into the outer contour (earcut technique) → ear clipping →
 extrude (prism with hole walls), or **relief** (height map, ≤ 120 cells/side) or **revolve** (half-width profile
-lathed around Y, uniform scale). All outputs are watertight.
+lathed around Y, uniform scale). All outputs are watertight. Outline drawings (holes covering > 50 % of the outline
+area) are auto-filled to solids; small holes (mounting holes) are kept. STEP export writes an AP214 faceted B-rep
+(one FACETED_BREP per mesh) — verified by re-parsing with the independent `steputils` ISO-10303-21 reader.
+
+**Images without AI**: the hero image and per-step illustrations are isometric painter's-algorithm renders of the
+solved assembly (shells drawn last and translucent = x-ray), so pictures always match the design; rerolls rotate
+the view deterministically.
 
 ## 8. Pricing & BOM (`pricing.py`)
 Price strings in US/EU formats and currencies → USD (static FX table, replaceable). Quote: order_qty = ceil(max(qty,

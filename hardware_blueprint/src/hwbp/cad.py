@@ -228,6 +228,7 @@ class CadJobQueue:
                 "model.stl": M.to_stl_binary(mesh),
                 "model.obj": M.to_obj([mesh]).encode(),
                 "model.glb": M.to_glb([M.SceneNode(node.id, mesh, (0.0, 0.0, 0.0), color)]),
+                "model.step": M.to_step([mesh], name=node.id).encode(),
             }
             vol, area = mesh.volume(), mesh.surface_area()
             job.stats = {"triangles": len(mesh.triangles), "volumeMm3": round(vol, 1), "areaMm2": round(area, 1),

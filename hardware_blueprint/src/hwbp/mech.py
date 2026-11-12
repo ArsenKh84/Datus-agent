@@ -32,6 +32,7 @@ CYLINDER_NAME = re.compile(
 )
 DEFAULT_DIMS = (20.0, 10.0, 20.0)  # (w, h, d)
 BESIDE_GAP = 5.0
+GRID_GAP = 5.0
 WALL, FLOOR, LID_T, STANDOFF_H, CLEARANCE = 2.0, 2.0, 2.0, 5.0, 4.0
 
 
@@ -120,6 +121,7 @@ def solve_layout(content: ProjectContent) -> dict:
             pp = placed[p]
             kids = [n for n in adj[p] if n not in seen]
             beside_x = pp.pos[0] + pp.w / 2
+            tops: list[Placed] = []
             for n in kids:
                 seen.add(n)
                 c = edges[frozenset((p, n))]
@@ -135,11 +137,13 @@ def solve_layout(content: ProjectContent) -> dict:
                     child.pos = [pp.pos[0], pp.pos[1] + (1 if up else -1) * (pp.h / 2 + h / 2), pp.pos[2]]
                 elif w <= pp.w and d <= pp.d:
                     child.pos = [pp.pos[0], pp.pos[1] + pp.h / 2 + h / 2, pp.pos[2]]
+                    tops.append(child)
                 else:
                     child.pos = [beside_x + BESIDE_GAP + w / 2, (pp.pos[1] - pp.h / 2) + h / 2, pp.pos[2]]
                     beside_x += BESIDE_GAP + w
                 placed[n] = child
                 queue.append(n)
+            _grid_on_top(pp, tops)
         # normalise component: min y = 0, pack along X with 30 mm gaps
         comp_ids = [i for i in comp if i in placed]
         lo = [min(placed[i].bounds()[0][k] for i in comp_ids) for k in range(3)]
@@ -179,6 +183,25 @@ def solve_layout(content: ProjectContent) -> dict:
         "collisions": find_collisions(placed),
         "cadEligible": len(placed),
     }
+
+
+def _grid_on_top(parent: Placed, kids: list[Placed], gap: float = GRID_GAP) -> None:
+    """Several implicit 'top' children of one parent: centred grid on the parent's top face (largest first, nearest
+    the centre), rows along X, wrapping along Z — reference behaviour for sibling groups."""
+    if len(kids) < 2:
+        return
+    kids.sort(key=lambda k: (-(k.w * k.h * k.d), k.id))
+    cell_x = max(k.w for k in kids) + gap
+    cell_z = max(k.d for k in kids) + gap
+    cols = max(1, int((parent.w + gap) // cell_x))
+    rows = -(-len(kids) // cols)
+    cells = sorted(
+        ((c, r) for r in range(rows) for c in range(cols)),
+        key=lambda cr: (abs(cr[0] - (cols - 1) / 2) + abs(cr[1] - (rows - 1) / 2), cr[1], cr[0]),
+    )
+    for k, (c, r) in zip(kids, cells):
+        k.pos[0] = parent.pos[0] + (c - (cols - 1) / 2) * cell_x
+        k.pos[2] = parent.pos[2] + (r - (rows - 1) / 2) * cell_z
 
 
 def _components(ids: list[str], adj: dict[str, list[str]]) -> list[list[str]]:
@@ -511,3 +534,185 @@ def _virtual(type_: str, name: str):
     from hwbp.models import CatalogPart
 
     return CatalogPart(id=f"custom-{type_}", type=type_, category="mechanical", name=name, popularity=1.0)
+
+
+# ------------------------------------------------------------------------------ explode view
+GOLDEN_ANGLE = 2.39996
+
+
+def explode_layout(layout: dict, factor: float = 0.9, distance: float = 0.0, passes: int = 30) -> dict:
+    """Pull every part away from the assembly centre so none of them touch (reference explode semantics).
+
+    offset = (distance + |half-extents| * 1.5 + 0.05 * bbox diagonal) * factor along unit(part centre - bbox centre);
+    parts at the centre use a golden-angle direction; then up to ``passes`` pairwise de-overlap sweeps push
+    overlapping pairs apart by half the minimum penetration (+0.01 mm) along the least-penetration axis.
+    """
+    parts = layout.get("parts", {})
+    if not parts:
+        return {**layout, "exploded": True}
+    lo, hi = layout["bbox"]["min"], layout["bbox"]["max"]
+    centre = [(lo[k] + hi[k]) / 2 for k in range(3)]
+    diag = math.dist(lo, hi)
+    pos: dict[str, list[float]] = {}
+    for i, (pid, p) in enumerate(sorted(parts.items())):
+        d = [p["pos"][k] - centre[k] for k in range(3)]
+        n = math.sqrt(sum(v * v for v in d))
+        if n < 1e-6:
+            d = [math.cos(i * GOLDEN_ANGLE), 0.4, math.sin(i * GOLDEN_ANGLE)]
+            n = math.sqrt(sum(v * v for v in d))
+        he = math.sqrt(sum((s / 2) ** 2 for s in p["size"]))
+        mag = (distance + he * 1.5 + 0.05 * diag) * factor
+        pos[pid] = [p["pos"][k] + d[k] / n * mag for k in range(3)]
+    ids = sorted(pos)
+    for _ in range(passes):
+        moved = False
+        for i, a in enumerate(ids):
+            for b in ids[i + 1 :]:
+                pen = [
+                    min(pos[a][k] + parts[a]["size"][k] / 2, pos[b][k] + parts[b]["size"][k] / 2)
+                    - max(pos[a][k] - parts[a]["size"][k] / 2, pos[b][k] - parts[b]["size"][k] / 2)
+                    for k in range(3)
+                ]
+                if min(pen) <= 0:
+                    continue
+                k = pen.index(min(pen))
+                push = pen[k] / 2 + 0.01
+                sign = 1.0 if pos[a][k] >= pos[b][k] else -1.0
+                pos[a][k] += sign * push
+                pos[b][k] -= sign * push
+                moved = True
+        if not moved:
+            break
+    out_parts = {pid: {**p, "pos": [round(v, 3) for v in pos[pid]]} for pid, p in parts.items()}
+    lo2 = [min(out_parts[i]["pos"][k] - out_parts[i]["size"][k] / 2 for i in ids) for k in range(3)]
+    hi2 = [max(out_parts[i]["pos"][k] + out_parts[i]["size"][k] / 2 for i in ids) for k in range(3)]
+    return {**layout, "parts": out_parts, "exploded": True,
+            "bbox": {"min": lo2, "max": hi2, "size": [round(hi2[k] - lo2[k], 3) for k in range(3)]}}  # fmt: skip
+
+
+# ------------------------------------------------------------------------------ heal / enrich (foreign documents)
+def enrich_mechanical(content: ProjectContent) -> dict:
+    """Backfill ``delta`` on connections that lack one, from the solved placement (enrichMechanicalConnections)."""
+    lay = solve_layout(content)
+    assigned = 0
+    for c in content.mechanical_connections:
+        if c.delta is None and c.source in lay["parts"] and c.target in lay["parts"]:
+            s, t = lay["parts"][c.source]["pos"], lay["parts"][c.target]["pos"]
+            c.delta = Vec3(x=round(t[0] - s[0], 3), y=round(t[1] - s[1], 3), z=round(t[2] - s[2], 3))
+            assigned += 1
+    return {"assigned": assigned, "failed": sum(1 for c in content.mechanical_connections if c.delta is None)}
+
+
+def heal_mechanical(content: ProjectContent) -> dict:
+    """Attach orphan layout parts to the assembly (mount target, else the root) and backfill deltas."""
+    layout_ids = [n.id for n in content.nodes if is_layout_part(n)]
+    touched = {c.source for c in content.mechanical_connections} | {c.target for c in content.mechanical_connections}
+    touched |= {n.id for n in content.nodes if n.mounts_for} | {n.mounts_for for n in content.nodes if n.mounts_for}
+    orphans = [i for i in layout_ids if i not in touched]
+    if orphans and layout_ids:
+        nodes = {n.id: n for n in content.nodes}
+        dims = {i: parse_dims(nodes[i].dimensions) or DEFAULT_DIMS for i in layout_ids}
+        connected = [i for i in layout_ids if i in touched] or [i for i in layout_ids if i not in orphans] or layout_ids
+        root = _pick_root(connected, nodes, dims)
+        for o in orphans:
+            if o == root:
+                continue
+            content.mechanical_connections.append(
+                MechanicalConnection(source=o, target=root, label="attached", delta=None)
+            )
+    rep = enrich_mechanical(content)
+    touched_after = {c.source for c in content.mechanical_connections} | {
+        c.target for c in content.mechanical_connections
+    }
+    return {"orphansBefore": orphans, "orphansAfter": [i for i in layout_ids if i not in touched_after and len(layout_ids) > 1],
+            "mechanicalConnections": [c.dump() for c in content.mechanical_connections], **rep}  # fmt: skip
+
+
+# ------------------------------------------------------------------------------ joints (assembly v2)
+JOINT_TYPES = ("rigid", "revolute", "slider")
+
+
+def derive_joints(layout: dict) -> list[dict]:
+    """One rigid joint per tree edge: offset = child centre - parent centre (world mm)."""
+    out = []
+    for cid, p in sorted(layout.get("parts", {}).items()):
+        par = p.get("parent")
+        if par and par in layout["parts"]:
+            pp = layout["parts"][par]["pos"]
+            out.append({"id": f"mig-{par}-{cid}", "parent": par, "child": cid, "type": "rigid", "axis": [0.0, 1.0, 0.0],
+                        "offset": [round(p["pos"][k] - pp[k], 3) for k in range(3)], "pose": 0.0})  # fmt: skip
+    return out
+
+
+def _rot(axis: list[float], deg: float) -> list[list[float]]:
+    x, y, z = axis
+    n = math.sqrt(x * x + y * y + z * z) or 1.0
+    x, y, z = x / n, y / n, z / n
+    c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    t = 1 - c
+    return [[t * x * x + c, t * x * y - s * z, t * x * z + s * y],
+            [t * x * y + s * z, t * y * y + c, t * y * z - s * x],
+            [t * x * z - s * y, t * y * z + s * x, t * z * z + c]]  # fmt: skip
+
+
+def _mat_vec(m: list[list[float]], v: list[float]) -> list[float]:
+    return [sum(m[r][k] * v[k] for k in range(3)) for r in range(3)]
+
+
+def _mat_mul(a: list[list[float]], b: list[list[float]]) -> list[list[float]]:
+    return [[sum(a[r][k] * b[k][c] for k in range(3)) for c in range(3)] for r in range(3)]
+
+
+def apply_joints(layout: dict, joints: list[dict]) -> dict:
+    """Re-pose the assembly: slider = translate child subtree along axis by pose mm; revolute = rotate child subtree
+    by pose degrees about the axis through the child's joint origin. Returns a new layout with ``rotation`` (3x3) and
+    rotated axis-aligned extents per part."""
+    parts = {k: {**v, "pos": list(v["pos"])} for k, v in layout.get("parts", {}).items()}
+    rot = {k: [[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]] for k in parts}
+    children: dict[str, list[str]] = {}
+    for j in joints:
+        children.setdefault(j["parent"], []).append(j["child"])
+
+    def subtree(i: str) -> list[str]:
+        out, stack = [], [i]
+        while stack:
+            u = stack.pop()
+            if u in out:
+                continue
+            out.append(u)
+            stack += children.get(u, [])
+        return out
+
+    for j in joints:
+        if j.get("type") not in JOINT_TYPES:
+            raise ValueError(f"unknown joint type {j.get('type')!r}")
+        pose = float(j.get("pose") or 0.0)
+        if j["type"] == "rigid" or pose == 0 or j["child"] not in parts:
+            continue
+        axis = j.get("axis") or [0.0, 1.0, 0.0]
+        ids = subtree(j["child"])
+        if j["type"] == "slider":
+            n = math.sqrt(sum(a * a for a in axis)) or 1.0
+            for i in ids:
+                parts[i]["pos"] = [parts[i]["pos"][k] + axis[k] / n * pose for k in range(3)]
+        else:
+            r = _rot(axis, pose)
+            origin = list(parts[j["child"]]["pos"])
+            for i in ids:
+                rel = [parts[i]["pos"][k] - origin[k] for k in range(3)]
+                parts[i]["pos"] = [origin[k] + v for k, v in enumerate(_mat_vec(r, rel))]
+                rot[i] = _mat_mul(r, rot[i])
+    for i, p in parts.items():
+        he = [s / 2 for s in p["size"]]
+        ext = [sum(abs(rot[i][r][k]) * he[k] for k in range(3)) * 2 for r in range(3)]
+        p["rotation"] = [round(v, 6) for row in rot[i] for v in row]
+        p["extent"] = [round(v, 3) for v in ext]
+        p["pos"] = [round(v, 3) for v in p["pos"]]
+    lo = [min(p["pos"][k] - p["extent"][k] / 2 for p in parts.values()) for k in range(3)] if parts else [0, 0, 0]
+    hi = [max(p["pos"][k] + p["extent"][k] / 2 for p in parts.values()) for k in range(3)] if parts else [0, 0, 0]
+    return {
+        **layout,
+        "parts": parts,
+        "joints": joints,
+        "bbox": {"min": lo, "max": hi, "size": [round(hi[k] - lo[k], 3) for k in range(3)]},
+    }

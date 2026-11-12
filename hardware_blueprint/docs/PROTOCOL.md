@@ -90,3 +90,29 @@ viewer.html, firmware/, cad/assembly.{glb,obj}, cad/parts/*.stl).
 ## Meta
 
 `GET /api/features`, `GET /api/capabilities`. Errors use FastAPI's `{"detail": …}` envelope.
+
+## Extended protocol (parity additions)
+
+Identity: every request may carry `X-User-Id` (plug real auth here); default `local-user` (Pro plan). Roles per
+project: owner > editor > viewer — saves, chat edits and edit plans need editor; publish/collaboration need owner.
+Errors: `{"detail": {"error": <code>, "message": …}}` with the reference codes where known.
+
+| Area | Method & path | Notes |
+|---|---|---|
+| Runs | `POST /api/generation-runs/{id}/questions {revision, qa:[{id or question, answer}]}` | re-runs into the same project; 409 `stale_revision` |
+| Runs | `POST /api/generation-runs/{id}/retry {revision?}` · `GET /api/generation-runs?recoverable=true` | |
+| Images | `POST /api/generation-input-images {image: dataURL or base64, mime?, draftKey?}` → `{id, url, hash, mimeType}` · `GET /api/input-images/{id}` | PNG/JPEG/WebP/PNM ≤ 40 MB; runs accept `inputImages: [id]`; snapshot carries `imageAnalysis` |
+| Projects | `GET /api/projects` · `POST /api/projects/copy {token}` | list mine (with role) · fork a published project |
+| Chat | `GET /api/projects/{id}/chat` · `POST /api/projects/{id}/chat {message, autoApprove:false}` · `POST /api/projects/{id}/chat/{turn}/{approve,dismiss,retry}` · `POST /api/projects/{id}/chat/clear` | turns: `awaiting_approval` (plan preview in reference edit-plan format, 15 min deadline) → `completed` / `outdated` / `expired` / `cancelled` |
+| Live | `WS /api/projects/{id}/events` | send `{"type":"authenticate","userId"}`; receive `ready`, `presence`, `project_changed`, `chat_changed`, `readme_changed`; `ping`→`pong` |
+| Notes | `GET/PUT /api/projects/{id}/readme {text, baseVersion}` | 409 `readme_conflict` |
+| Collaboration | `GET/PATCH/DELETE /api/projects/{id}/members[/{user}]` · `POST/GET/DELETE /api/projects/{id}/invitations[/{inv}]` · `POST /api/project-invitations/accept {token}` · `POST/GET/DELETE /api/projects/{id}/share-links[/{link}]` · `POST /api/share-links/redeem {token}` | codes: `invitation_invalid/expired/cooldown`, `share_link_invalid/expired`, `collaborator_limit_reached` (10), `cannot_change_owner` |
+| Community | `POST /api/unpublish` · `GET /api/community?page&limit&sort=trending|new|stars&q` · `GET /api/community/suggest?q` · `POST /api/star {token}` · `GET /api/community/starred` · `GET /api/trending?limit` · `GET /api/stats` | trending = (stars+1)/(age_h+2)^1.5 |
+| Parts | `POST /api/parts/nexar-sourcing {partIds}` · `POST /api/parts/{amazon,affiliate,adafruit}-links {partIds}` · `GET /api/parts/image?name&type` · `GET /api/parts/icon.svg` · `GET /api/parts/{id}/photo` | plain (non-affiliate) links; typed SVG icons |
+| AI-action equivalents | `POST /api/ideas` · `GET /api/projects/{id}/suggested-prompts?mode` · `POST /api/projects/{id}/part-descriptions/refresh` · `GET /api/projects/{id}/instructions/{step}/{sub}/detail` · `GET /api/projects/{id}/image.svg?variant` · `POST /api/projects/{id}/image-rerolls` · `POST …/image-rerolls/{id}/apply` · `GET /api/projects/{id}/steps/{step}/{sub}/image.svg` | deterministic, no LLM |
+| Mechanics | `POST /api/projects/{id}/mech/heal` · `POST …/mech/enrich` · `GET …/mech/explode?factor` · `GET/POST …/mech/joints {joints, save?}` | joints: rigid / slider (mm) / revolute (°) |
+| Wiring/BOM | `GET /api/projects/{id}/wiring/layout?mode=simple|enriched` · `GET …/wiring-enriched.svg` · `GET …/bom/merged` | |
+| Export | `POST /api/export/cad {projectId, formats:[stl,step,glb,obj], nodeIds?}` (headers `X-Downloaded-Count`, `X-Omitted-Count`) · `POST /api/export/file {projectId, kind}` · `POST /api/export/zip` | kinds: project.json, bom.csv, guide.md, wiring.svg, wiring_enriched.svg, viewer.html, hero.svg, firmware.zip |
+| CAD | artifacts now include `model.step` · `POST /api/cad-wallet/purchase {bundle: small|medium|large}` | purchase is simulated (no payment provider) |
+| Account | `GET /api/profile/me` · `GET /api/account` · `POST /api/set-username|auto-username|set-bio|set-profile-color` · `POST /api/onboarding/complete` · `GET/POST /api/email-preferences` · `GET|POST /api/get-credits` · `POST /api/consume-credit` · `GET /api/check-subscription` · `POST /api/billing/plan` (simulated) · `POST /api/contact-leads` | free plan: 10 design credits / week (402 `no_credits`) |
+| Pages | `GET /` (studio) · `GET /p/{id}` (project page + chat) · `GET /s/{token}` (share page + Star/Copy) | |

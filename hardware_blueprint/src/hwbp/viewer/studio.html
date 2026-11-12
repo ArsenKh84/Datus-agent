@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hardware Blueprint Studio</title>
+<style>
+:root{--bg:#f6f6f4;--surface:#ffffff;--text:#151515;--muted:#6b6d6c;--line:#e2e3e1;--accent:#2f6fed;--ok:#2f8f4e;--warn:#b7791f;--err:#c53030}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff}}
+:root[data-theme="dark"]{--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
+h1{font-size:16px;margin:0}h2{font-size:15px;margin:0 0 10px}main{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.btn{border:1px solid var(--line);background:none;color:var(--text);padding:8px 14px;border-radius:8px;font:600 13px/1 inherit;cursor:pointer;min-height:36px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+textarea,input[type=text],input[type=number],select{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+textarea{min-height:84px;resize:vertical}label{font-size:12px;color:var(--muted);display:block;margin:6px 0 4px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.muted{color:var(--muted)}.small{font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.stats{display:flex;gap:16px;flex-wrap:wrap}.stats b{font-size:18px;display:block}
+.phases{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.phase{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.phase.done{border-color:var(--ok);color:var(--ok)}.phase.now{border-color:var(--accent);color:var(--accent)}
+#draw{width:100%;max-width:420px;aspect-ratio:4/3;background:#fff;border:1px solid var(--line);border-radius:8px;touch-action:none;display:block}
+.thumb{max-width:160px;max-height:120px;border-radius:8px;border:1px solid var(--line)}
+.proj{display:block;text-decoration:none;color:inherit}.proj img{width:100%;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+a{color:var(--accent)}button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.err{color:var(--err)}
+</style>
+</head>
+<body>
+<header><h1>Hardware Blueprint Studio</h1><div class="stats" id="stats"></div></header>
+<main>
+<div class="card">
+  <h2>Describe a device</h2>
+  <label for="prompt">What should it do?</label>
+  <textarea id="prompt" placeholder="e.g. A portable radar with a touchscreen, carbon fiber enclosure, battery powered"></textarea>
+  <div class="row" style="margin-top:8px">
+    <button class="btn primary" id="go">Generate blueprint</button>
+    <label class="btn" for="file" style="margin:0;color:var(--text)">Upload image</label><input type="file" id="file" accept="image/png,image/jpeg,image/webp" hidden />
+    <button class="btn" id="drawbtn" aria-pressed="false">Draw</button>
+    <button class="btn" id="ideabtn" aria-pressed="false">Need an idea?</button>
+  </div>
+  <div id="imgwrap" class="row" style="margin-top:8px" hidden><img id="imgprev" class="thumb" alt="Attached image"/><span class="small muted" id="imginfo"></span><button class="btn" id="imgclear">Remove</button><button class="btn" id="tomesh">Image → 3D (STL)</button></div>
+  <div id="drawwrap" hidden style="margin-top:8px"><canvas id="draw" width="480" height="360" aria-label="Sketch pad"></canvas>
+    <div class="row" style="margin-top:6px"><button class="btn" id="drawclear">Clear</button><button class="btn" id="drawuse">Use drawing</button><span class="small muted">Draw the outline of your device or part (dark on white).</span></div></div>
+  <div id="ideawrap" hidden style="margin-top:8px">
+    <div class="grid"><div><label for="interests">Interests (comma separated)</label><input type="text" id="interests" value="home, iot"/></div>
+    <div><label for="budget">Budget (USD)</label><input type="number" id="budget" value="40" min="5"/></div>
+    <div><label for="skill">Skill</label><select id="skill"><option value="1">Beginner</option><option value="2" selected>Intermediate</option><option value="3">Advanced</option></select></div></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="ideago">Suggest projects</button></div><div id="ideas" class="grid" style="margin-top:8px"></div></div>
+  <div id="progress" hidden><div class="phases" id="phases"></div><p class="small muted" id="pmsg"></p><div id="questions"></div><p id="result"></p></div>
+</div>
+<div class="card"><h2>My projects</h2><div id="mine" class="small muted">Loading…</div></div>
+<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Community</h2>
+  <div class="row"><input type="text" id="search" placeholder="Search projects" aria-label="Search community projects" style="width:200px"/>
+  <button class="btn" data-sort="trending" aria-pressed="true">Trending</button><button class="btn" data-sort="new" aria-pressed="false">New</button><button class="btn" data-sort="stars" aria-pressed="false">Stars</button></div></div>
+  <div id="community" class="grid" style="margin-top:12px"></div></div>
+</main>
+<script>
+(function(){
+const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function api(path,body,method){const r=await fetch(path,{method:method||(body?'POST':'GET'),headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const ct=r.headers.get('content-type')||'';const d=ct.includes('json')?await r.json():await r.text();if(!r.ok)throw new Error((d.detail&&(d.detail.message||d.detail.error))||d.detail||('HTTP '+r.status));return d;}
+const PHASES=['planning','questions','electrical','mechanical','revealing','guide','done'];
+let imageId=null;
+async function stats(){try{const s=await api('/api/stats');$('stats').innerHTML=`<span><b>${s.projectsCreated}</b><span class="small muted">projects created</span></span><span><b>${s.accountsCreated}</b><span class="small muted">accounts</span></span><span><b>${s.publishedProjects}</b><span class="small muted">published</span></span>`;}catch(e){}}
+async function attach(dataUrl,label){try{const r=await api('/api/generation-input-images',{image:dataUrl});imageId=r.id;$('imgprev').src=dataUrl;$('imginfo').textContent=label+' · '+r.hash.slice(0,8);$('imgwrap').hidden=false;}catch(e){alert('Could not attach the image: '+e.message);}}
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>attach(fr.result,f.name);fr.readAsDataURL(f);};
+$('imgclear').onclick=()=>{imageId=null;$('imgwrap').hidden=true;};
+$('tomesh').onclick=async()=>{try{const d=$('imgprev').src.split(',')[1];const r=await api('/api/image-to-mesh',{image:d,mode:'extrude',widthMm:80,heightMm:6,format:'stl'});
+  const a=document.createElement('a');a.href='data:model/stl;base64,'+r.data;a.download='part.stl';a.click();$('imginfo').textContent=`STL: ${r.report.sizeMm.join(' × ')} mm, ${r.report.holes} hole(s), watertight ${r.report.watertight}`;}catch(e){alert('Could not build a mesh: '+e.message);}};
+// ---- drawing pad
+const cv=$('draw'),ctx=cv.getContext('2d');const clear=()=>{ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);};clear();
+let pen=null;const pos=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
+cv.onpointerdown=e=>{pen=pos(e);cv.setPointerCapture(e.pointerId);};cv.onpointerup=()=>pen=null;
+cv.onpointermove=e=>{if(!pen)return;const p=pos(e);ctx.strokeStyle='#111';ctx.lineWidth=10;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(...pen);ctx.lineTo(...p);ctx.stroke();pen=p;};
+$('drawbtn').onclick=()=>{const on=$('drawwrap').hidden;$('drawwrap').hidden=!on;$('drawbtn').setAttribute('aria-pressed',on);};
+$('drawclear').onclick=clear;$('drawuse').onclick=()=>attach(cv.toDataURL('image/png'),'drawing');
+// ---- ideas
+$('ideabtn').onclick=()=>{const on=$('ideawrap').hidden;$('ideawrap').hidden=!on;$('ideabtn').setAttribute('aria-pressed',on);};
+$('ideago').onclick=async()=>{try{const r=await api('/api/ideas',{answers:{interests:$('interests').value.split(',').map(s=>s.trim()).filter(Boolean),budget:+$('budget').value,skill:+$('skill').value}});
+  $('ideas').innerHTML=r.projects.map(p=>`<div class="card" style="margin:0"><b>${esc(p.name)}</b><p class="small">${esc(p.description)}</p><button class="btn" data-idea="${esc(p.description)}">Use this idea</button></div>`).join('');
+  $('ideas').querySelectorAll('[data-idea]').forEach(b=>b.onclick=()=>{$('prompt').value=b.dataset.idea;$('prompt').focus();});}catch(e){alert('Could not suggest ideas: '+e.message);}};
+// ---- generation with long-poll
+function showPhase(ph){$('phases').innerHTML=PHASES.map(p=>`<span class="phase ${PHASES.indexOf(p)<PHASES.indexOf(ph)||ph==='done'?'done':p===ph?'now':''}">${p}</span>`).join('');}
+$('go').onclick=async()=>{const prompt=$('prompt').value.trim();if(!prompt&&!imageId){$('prompt').focus();return;}
+  $('go').disabled=true;$('progress').hidden=false;$('result').innerHTML='';$('questions').innerHTML='';showPhase('planning');
+  try{let run=await api('/api/generation-runs',{prompt,idempotencyKey:crypto.randomUUID?crypto.randomUUID():String(Date.now()),inputImages:imageId?[imageId]:[]});
+    while(['queued','running'].includes(run.status)){run=await api(`/api/generation-runs/${run.id}?waitMs=10000&sinceRevision=${run.revision}`);showPhase(run.phase);$('pmsg').textContent=(run.messages||[]).slice(-1)[0]||'';}
+    showPhase(run.phase);
+    if(run.status==='completed'){$('result').innerHTML=`<a class="btn primary" href="/p/${esc(run.projectId)}">Open project →</a>`;renderQuestions(run);loadMine();stats();}
+    else $('result').innerHTML=`<span class="err">Generation ${esc(run.status)}: ${esc(run.failure||'')}</span>`;
+  }catch(e){$('result').innerHTML=`<span class="err">Could not generate: ${esc(e.message)}</span>`;}
+  $('go').disabled=false;};
+function renderQuestions(run){const qs=(run.questionRounds[0]||{}).questions||[];if(!qs.length)return;
+  $('questions').innerHTML='<p class="small muted">Refine (defaults were applied):</p>'+qs.map(q=>`<label for="q-${esc(q.id)}">${esc(q.question)}</label><select id="q-${esc(q.id)}" data-q="${esc(q.id)}">${q.options.map(o=>`<option ${o===q.default?'selected':''}>${esc(o)}</option>`).join('')}</select>`).join('')+'<div class="row" style="margin-top:8px"><button class="btn" id="qgo">Regenerate with answers</button></div>';
+  $('qgo').onclick=async()=>{const qa=[...document.querySelectorAll('[data-q]')].map(s=>({id:s.dataset.q,answer:s.value}));
+    try{let r=await api(`/api/generation-runs/${run.id}/questions`,{revision:run.revision,qa});while(['queued','running'].includes(r.status)){r=await api(`/api/generation-runs/${run.id}?waitMs=10000&sinceRevision=${r.revision}`);}
+      $('result').innerHTML=`<a class="btn primary" href="/p/${esc(r.projectId)}">Open updated project →</a>`;}catch(e){alert('Could not regenerate: '+e.message);}};}
+// ---- my projects & community
+async function loadMine(){try{const r=await api('/api/projects');$('mine').innerHTML=r.projects.length?r.projects.map(p=>`<div><a href="/p/${esc(p.id)}">${esc(p.name)}</a> <span class="muted">v${p.version} · ${esc(p.role)}</span></div>`).join(''):'No projects yet — describe a device above.';}catch(e){$('mine').textContent='Could not load projects.';}}
+let sort='trending';
+async function loadCommunity(){const q=$('search').value.trim();try{const r=await api(`/api/community?sort=${sort}&limit=24${q?'&q='+encodeURIComponent(q):''}`);
+  $('community').innerHTML=r.projects.length?r.projects.map(p=>`<a class="proj card" style="margin:0" href="/s/${esc(p.token)}">${p.thumbnailUrl?`<img alt="" loading="lazy" src="${esc(p.thumbnailUrl)}"/>`:''}<b>${esc(p.projectName)}</b><div class="small muted">${p.nodeCount} parts · ★ ${p.starCount}</div></a>`).join(''):'<p class="small muted">No published projects yet.</p>';}catch(e){$('community').innerHTML='<p class="small err">Could not load the community feed.</p>';}}
+document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{sort=b.dataset.sort;document.querySelectorAll('[data-sort]').forEach(x=>x.setAttribute('aria-pressed',x===b));loadCommunity();});
+let t=null;$('search').oninput=()=>{clearTimeout(t);t=setTimeout(loadCommunity,250);};
+stats();loadMine();loadCommunity();
+})();
+</script>
+</body>
+</html>
