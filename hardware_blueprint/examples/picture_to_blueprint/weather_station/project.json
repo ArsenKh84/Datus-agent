@@ -1,0 +1,3140 @@
+{
+  "projectName": "Portable Weather Station",
+  "originalPrompt": "portable weather station with a display and 3 buttons",
+  "projectDescription": "Portable Weather Station built around a ESP32-C3 SuperMini with BME280 Temp/Humidity/Pressure, 12 mm Tactile Push Button, 2.9in e-Paper 296x128 (SPI); battery-powered (\u224810.4 h per charge), housed in a PETG enclosure.",
+  "plan": "- Main Controller: ESP32-C3 SuperMini \u2014 $2.90/unit; lowest price among candidates\n- BME280 Temp/Humidity/Pressure: BME280 Temp/Humidity/Pressure \u2014 $3.20/unit; very common part (libraries & tutorials)\n- Button 1: 12 mm Tactile Push Button \u2014 $0.05/unit; lowest price among candidates\n- Button 2: 12 mm Tactile Push Button \u2014 $0.05/unit; lowest price among candidates\n- Button 3: 12 mm Tactile Push Button \u2014 $0.05/unit; lowest price among candidates\n- Display: 2.9in e-Paper 296x128 (SPI) \u2014 $13.00/unit; named in the prompt: display\n- Battery: LiPo 3.7 V 1000 mAh (503450, PCM) \u2014 $3.50/unit; matches rechargeable\n- USB-C Charger + Protection: TP4056 USB-C Li-ion Charger + Protection \u2014 1S Li-ion needs CC/CV charging and over-discharge protection\n- 5V Boost: MT3608 Boost Converter (set 5 V) \u2014 $0.50/unit; lowest price among candidates\n- Power: li-po 3.7 Wh, est. runtime 10.4 h\n- Enclosure: 110\u00d775\u00d725 mm in PETG",
+  "notes": [
+    "button",
+    "humidity",
+    "pressure",
+    "temperature",
+    "display",
+    "battery powered",
+    "small enclosure"
+  ],
+  "nodes": [
+    {
+      "id": "main_controller",
+      "name": "Main Controller",
+      "type": "mcu",
+      "category": "electrical",
+      "partId": "esp32-c3-supermini",
+      "productName": "ESP32-C3 SuperMini",
+      "quantity": 1,
+      "estimatedCost": 2.9,
+      "dimensions": "22.5x18x5mm",
+      "pins": [
+        "GPIO0",
+        "GPIO1",
+        "GPIO3",
+        "GPIO4",
+        "GPIO6",
+        "GPIO7",
+        "GPIO8",
+        "GPIO9",
+        "GPIO10",
+        "GPIO20",
+        "GPIO21",
+        "3V3",
+        "5V",
+        "GND"
+      ],
+      "description": "Tiny RISC-V 160 MHz board with Wi-Fi + BLE 5, USB-C. Few GPIO; great for small sensors.",
+      "purchaseUrl": "https://www.aliexpress.com/wholesale?SearchText=ESP32-C3+SuperMini",
+      "research": {
+        "specs": [
+          {
+            "label": "pins",
+            "value": "GPIO0,GPIO1,GPIO2,GPIO3,GPIO4,GPIO5,GPIO6,GPIO7,GPIO8,GPIO9,GPIO10,GPIO20,GPIO21"
+          },
+          {
+            "label": "cpu_mhz",
+            "value": "160"
+          },
+          {
+            "label": "radios",
+            "value": "wifi,ble"
+          },
+          {
+            "label": "logic_v",
+            "value": "3.3"
+          },
+          {
+            "label": "supply_5V",
+            "value": "4.5-5.5V"
+          },
+          {
+            "label": "supply_3V3",
+            "value": "3-3.6V"
+          },
+          {
+            "label": "current_typ_ma",
+            "value": "60"
+          },
+          {
+            "label": "current_peak_ma",
+            "value": "350"
+          },
+          {
+            "label": "current_sleep_ma",
+            "value": "0.05"
+          },
+          {
+            "label": "width_mm",
+            "value": "22.5"
+          },
+          {
+            "label": "depth_mm",
+            "value": "18"
+          },
+          {
+            "label": "height_mm",
+            "value": "5"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=ESP32-C3+SuperMini",
+            "price": "$2.90",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 2.9
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=ESP32-C3+SuperMini",
+            "price": "$6.00",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 6.0
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=ESP32-C3-SUPERMINI",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=ESP32-C3-SUPERMINI",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=ESP32-C3-SUPERMINI",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "catalogId": "esp32-c3-supermini",
+      "role": "mcu",
+      "rationale": [
+        "$2.90/unit",
+        "lowest price among candidates",
+        "matches small",
+        "0 spare GPIO after allocation",
+        "rejected: esp32-cam (ESP32-CAM (AI-Thinker) + OV2640 has no SPI bus)"
+      ]
+    },
+    {
+      "id": "bme280_temp_humidity_pressure",
+      "name": "BME280 Temp/Humidity/Pressure",
+      "type": "sensor",
+      "category": "electrical",
+      "partId": "bme280",
+      "productName": "BME280 Temp/Humidity/Pressure",
+      "quantity": 1,
+      "estimatedCost": 3.2,
+      "dimensions": "15x12x3mm",
+      "pins": [
+        "SDA",
+        "SCL",
+        "VIN",
+        "GND"
+      ],
+      "purchaseUrl": "https://www.aliexpress.com/wholesale?SearchText=BME280+breakout",
+      "research": {
+        "specs": [
+          {
+            "label": "interface_i2c",
+            "value": "SDA,SCL @0x76"
+          },
+          {
+            "label": "supply_VIN",
+            "value": "3-5.5V"
+          },
+          {
+            "label": "current_typ_ma",
+            "value": "0.7"
+          },
+          {
+            "label": "current_peak_ma",
+            "value": "1"
+          },
+          {
+            "label": "current_sleep_ma",
+            "value": "0.001"
+          },
+          {
+            "label": "width_mm",
+            "value": "15"
+          },
+          {
+            "label": "depth_mm",
+            "value": "12"
+          },
+          {
+            "label": "height_mm",
+            "value": "3"
+          },
+          {
+            "label": "accuracy_temp",
+            "value": "\u00b11.0\u00b0C"
+          },
+          {
+            "label": "accuracy_rh",
+            "value": "\u00b13%"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=BME280+breakout",
+            "price": "$3.20",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 3.2
+              }
+            ]
+          },
+          {
+            "vendor": "Adafruit",
+            "url": "https://www.adafruit.com/search?q=BME280+breakout",
+            "price": "$14.95",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 14.95
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=BME280",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=BME280",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=BME280",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "catalogId": "bme280",
+      "role": "sense.pressure",
+      "rationale": [
+        "$3.20/unit",
+        "very common part (libraries & tutorials)",
+        "covers sense.humidity, sense.pressure, sense.temperature"
+      ]
+    },
+    {
+      "id": "button_1",
+      "name": "Button 1",
+      "type": "module",
+      "category": "electrical",
+      "partId": "push-button",
+      "productName": "12 mm Tactile Push Button",
+      "quantity": 1,
+      "estimatedCost": 0.4,
+      "dimensions": "12x12x7mm",
+      "pins": [
+        "SW",
+        "GND"
+      ],
+      "purchaseUrl": "https://www.amazon.com/s?k=12mm+tactile+button",
+      "research": {
+        "specs": [
+          {
+            "label": "interface_gpio",
+            "value": "SW"
+          },
+          {
+            "label": "width_mm",
+            "value": "12"
+          },
+          {
+            "label": "depth_mm",
+            "value": "12"
+          },
+          {
+            "label": "height_mm",
+            "value": "7"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=12mm+tactile+button",
+            "price": "$0.05",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.05
+              }
+            ],
+            "moq": 20,
+            "packSize": 20
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=12mm+tactile+button",
+            "price": "$0.40",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.4
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=12+mm+Tactile+Push+Button",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=12+mm+Tactile+Push+Button",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=12+mm+Tactile+Push+Button",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "subtype": "input",
+      "catalogId": "push-button",
+      "role": "input.button#1",
+      "rationale": [
+        "$0.05/unit",
+        "lowest price among candidates",
+        "very common part (libraries & tutorials)"
+      ]
+    },
+    {
+      "id": "button_2",
+      "name": "Button 2",
+      "type": "module",
+      "category": "electrical",
+      "partId": "push-button",
+      "productName": "12 mm Tactile Push Button",
+      "quantity": 1,
+      "estimatedCost": 0.4,
+      "dimensions": "12x12x7mm",
+      "pins": [
+        "SW",
+        "GND"
+      ],
+      "purchaseUrl": "https://www.amazon.com/s?k=12mm+tactile+button",
+      "research": {
+        "specs": [
+          {
+            "label": "interface_gpio",
+            "value": "SW"
+          },
+          {
+            "label": "width_mm",
+            "value": "12"
+          },
+          {
+            "label": "depth_mm",
+            "value": "12"
+          },
+          {
+            "label": "height_mm",
+            "value": "7"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=12mm+tactile+button",
+            "price": "$0.05",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.05
+              }
+            ],
+            "moq": 20,
+            "packSize": 20
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=12mm+tactile+button",
+            "price": "$0.40",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.4
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=12+mm+Tactile+Push+Button",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=12+mm+Tactile+Push+Button",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=12+mm+Tactile+Push+Button",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "subtype": "input",
+      "catalogId": "push-button",
+      "role": "input.button#2",
+      "rationale": [
+        "$0.05/unit",
+        "lowest price among candidates",
+        "very common part (libraries & tutorials)"
+      ]
+    },
+    {
+      "id": "button_3",
+      "name": "Button 3",
+      "type": "module",
+      "category": "electrical",
+      "partId": "push-button",
+      "productName": "12 mm Tactile Push Button",
+      "quantity": 1,
+      "estimatedCost": 0.4,
+      "dimensions": "12x12x7mm",
+      "pins": [
+        "SW",
+        "GND"
+      ],
+      "purchaseUrl": "https://www.amazon.com/s?k=12mm+tactile+button",
+      "research": {
+        "specs": [
+          {
+            "label": "interface_gpio",
+            "value": "SW"
+          },
+          {
+            "label": "width_mm",
+            "value": "12"
+          },
+          {
+            "label": "depth_mm",
+            "value": "12"
+          },
+          {
+            "label": "height_mm",
+            "value": "7"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=12mm+tactile+button",
+            "price": "$0.05",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.05
+              }
+            ],
+            "moq": 20,
+            "packSize": 20
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=12mm+tactile+button",
+            "price": "$0.40",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.4
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=12+mm+Tactile+Push+Button",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=12+mm+Tactile+Push+Button",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=12+mm+Tactile+Push+Button",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "subtype": "input",
+      "catalogId": "push-button",
+      "role": "input.button#3",
+      "rationale": [
+        "$0.05/unit",
+        "lowest price among candidates",
+        "very common part (libraries & tutorials)"
+      ]
+    },
+    {
+      "id": "display",
+      "name": "Display",
+      "type": "display",
+      "category": "electrical",
+      "partId": "epaper-29",
+      "productName": "2.9in e-Paper 296x128 (SPI)",
+      "quantity": 1,
+      "estimatedCost": 13.0,
+      "dimensions": "89x38x5mm",
+      "pins": [
+        "DIN",
+        "CLK",
+        "CS",
+        "DC",
+        "RST",
+        "BUSY",
+        "VCC",
+        "GND"
+      ],
+      "purchaseUrl": "https://www.aliexpress.com/wholesale?SearchText=2.9+inch+e-paper+module+SPI",
+      "research": {
+        "specs": [
+          {
+            "label": "interface_spi",
+            "value": "DIN,CLK,CS"
+          },
+          {
+            "label": "supply_VCC",
+            "value": "3-5V"
+          },
+          {
+            "label": "current_typ_ma",
+            "value": "0.01"
+          },
+          {
+            "label": "current_peak_ma",
+            "value": "8"
+          },
+          {
+            "label": "width_mm",
+            "value": "89"
+          },
+          {
+            "label": "depth_mm",
+            "value": "38"
+          },
+          {
+            "label": "height_mm",
+            "value": "5"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=2.9+inch+e-paper+module+SPI",
+            "price": "$13.00",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 13.0
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=2.9+inch+e-paper+module+SPI",
+            "price": "$21.00",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 21.0
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=Waveshare-2.9-epd",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=Waveshare-2.9-epd",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=Waveshare-2.9-epd",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "catalogId": "epaper-29",
+      "role": "ui.display",
+      "rationale": [
+        "$13.00/unit",
+        "named in the prompt: display"
+      ]
+    },
+    {
+      "id": "battery",
+      "name": "Battery",
+      "type": "power",
+      "category": "electrical",
+      "partId": "lipo-1s-1000",
+      "productName": "LiPo 3.7 V 1000 mAh (503450, PCM)",
+      "quantity": 1,
+      "estimatedCost": 3.5,
+      "dimensions": "34x50x5mm",
+      "pins": [
+        "B+",
+        "B-",
+        "GND"
+      ],
+      "purchaseUrl": "https://www.aliexpress.com/wholesale?SearchText=LiPo+3.7V+1000mAh+503450",
+      "research": {
+        "specs": [
+          {
+            "label": "chemistry",
+            "value": "li-po"
+          },
+          {
+            "label": "nominal_v",
+            "value": "3.7"
+          },
+          {
+            "label": "capacity_mah",
+            "value": "1000"
+          },
+          {
+            "label": "width_mm",
+            "value": "34"
+          },
+          {
+            "label": "depth_mm",
+            "value": "50"
+          },
+          {
+            "label": "height_mm",
+            "value": "5"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=LiPo+3.7V+1000mAh+503450",
+            "price": "$3.50",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 3.5
+              }
+            ]
+          },
+          {
+            "vendor": "Adafruit",
+            "url": "https://www.adafruit.com/search?q=LiPo+3.7V+1000mAh+503450",
+            "price": "$9.95",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 9.95
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=LiPo+3.7+V+1000+mAh+%28503450%2C+PCM%29",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=LiPo+3.7+V+1000+mAh+%28503450%2C+PCM%29",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=LiPo+3.7+V+1000+mAh+%28503450%2C+PCM%29",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "subtype": "battery",
+      "catalogId": "lipo-1s-1000",
+      "role": "power.battery",
+      "rationale": [
+        "$3.50/unit",
+        "matches rechargeable",
+        "very common part (libraries & tutorials)",
+        "3.7 Wh vs 1.7 Wh needed for 4 h"
+      ]
+    },
+    {
+      "id": "charger",
+      "name": "USB-C Charger + Protection",
+      "type": "power",
+      "category": "electrical",
+      "partId": "tp4056-usbc-protected",
+      "productName": "TP4056 USB-C Li-ion Charger + Protection",
+      "quantity": 1,
+      "estimatedCost": 0.6,
+      "dimensions": "28x17x4mm",
+      "pins": [
+        "IN+",
+        "OUT+",
+        "GND"
+      ],
+      "purchaseUrl": "https://www.aliexpress.com/wholesale?SearchText=TP4056+USB-C+charger+protection",
+      "research": {
+        "specs": [
+          {
+            "label": "topology",
+            "value": "charger"
+          },
+          {
+            "label": "vin",
+            "value": "4.5-5.5V"
+          },
+          {
+            "label": "imax_ma",
+            "value": "3000"
+          },
+          {
+            "label": "current_typ_ma",
+            "value": "0.006"
+          },
+          {
+            "label": "current_peak_ma",
+            "value": "0.006"
+          },
+          {
+            "label": "width_mm",
+            "value": "28"
+          },
+          {
+            "label": "depth_mm",
+            "value": "17"
+          },
+          {
+            "label": "height_mm",
+            "value": "4"
+          },
+          {
+            "label": "charge_current_ma",
+            "value": "1000"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=TP4056+USB-C+charger+protection",
+            "price": "$0.60",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.6
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=TP4056+USB-C+charger+protection",
+            "price": "$1.50",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 1.5
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=TP4056-DW01A-USBC",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=TP4056-DW01A-USBC",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=TP4056-DW01A-USBC",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "catalogId": "tp4056-usbc-protected",
+      "role": "power.charger",
+      "rationale": [
+        "1S Li-ion needs CC/CV charging and over-discharge protection"
+      ]
+    },
+    {
+      "id": "reg_5v",
+      "name": "5V Boost",
+      "type": "power",
+      "category": "electrical",
+      "partId": "mt3608-boost",
+      "productName": "MT3608 Boost Converter (set 5 V)",
+      "quantity": 1,
+      "estimatedCost": 0.5,
+      "dimensions": "37x17x7mm",
+      "pins": [
+        "VIN",
+        "VOUT",
+        "GND"
+      ],
+      "purchaseUrl": "https://www.aliexpress.com/wholesale?SearchText=MT3608+boost+module",
+      "research": {
+        "specs": [
+          {
+            "label": "topology",
+            "value": "boost"
+          },
+          {
+            "label": "vin",
+            "value": "2-24V"
+          },
+          {
+            "label": "vout",
+            "value": "5V"
+          },
+          {
+            "label": "imax_ma",
+            "value": "1000"
+          },
+          {
+            "label": "width_mm",
+            "value": "37"
+          },
+          {
+            "label": "depth_mm",
+            "value": "17"
+          },
+          {
+            "label": "height_mm",
+            "value": "7"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=MT3608+boost+module",
+            "price": "$0.50",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.5
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=MT3608+boost+module",
+            "price": "$1.50",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 1.5
+              }
+            ]
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=MT3608",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=MT3608",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=MT3608",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "catalogId": "mt3608-boost",
+      "role": "power.boost",
+      "rationale": [
+        "$0.50/unit",
+        "lowest price among candidates",
+        "very common part (libraries & tutorials)",
+        "boost: 3\u20134.2 V \u2192 5 V, 1000 mA \u2265 peak 350 mA",
+        "end-to-end efficiency 88% from VBAT"
+      ]
+    },
+    {
+      "id": "enclosure_base",
+      "name": "Enclosure Base",
+      "type": "enclosure",
+      "category": "mechanical",
+      "quantity": 1,
+      "estimatedCost": 1.33,
+      "dimensions": "110x75x25mm",
+      "description": "Printed tray 110\u00d775\u00d725 mm, 2 mm walls, integrated M2.5 bosses.",
+      "material": "PETG",
+      "printSettings": "25% infill, 0.2mm layer",
+      "role": "mech.enclosure"
+    },
+    {
+      "id": "enclosure_lid",
+      "name": "Enclosure Lid",
+      "type": "3d_printed",
+      "category": "mechanical",
+      "quantity": 1,
+      "estimatedCost": 0.66,
+      "dimensions": "110x75x2mm",
+      "description": "Lid with 1 display window(s); screws into base bosses.",
+      "material": "PETG",
+      "printSettings": "25% infill, 0.2mm layer",
+      "role": "mech.lid"
+    },
+    {
+      "id": "fastener_kit",
+      "name": "M2.5 Mounting Screws",
+      "type": "misc",
+      "category": "mechanical",
+      "partId": "m25-screws",
+      "productName": "M2.5\u00d76 mm Pan-Head Screws",
+      "quantity": 24,
+      "estimatedCost": 0.03,
+      "dimensions": "2.5x2.5x6mm",
+      "material": "Stainless steel",
+      "purchaseUrl": "https://www.aliexpress.com/wholesale?SearchText=M2.5x6+screws",
+      "research": {
+        "specs": [
+          {
+            "label": "width_mm",
+            "value": "2.5"
+          },
+          {
+            "label": "depth_mm",
+            "value": "2.5"
+          },
+          {
+            "label": "height_mm",
+            "value": "6"
+          },
+          {
+            "label": "thread",
+            "value": "M2.5"
+          },
+          {
+            "label": "length_mm",
+            "value": "6"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=M2.5x6+screws",
+            "price": "$0.03",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.03
+              }
+            ],
+            "moq": 100,
+            "packSize": 100
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=M2.5x6+screws",
+            "price": "$0.08",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.08
+              }
+            ],
+            "moq": 50,
+            "packSize": 50
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=M2.5%C3%976+mm+Pan-Head+Screws",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=M2.5%C3%976+mm+Pan-Head+Screws",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=M2.5%C3%976+mm+Pan-Head+Screws",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "subtype": "fastener",
+      "catalogId": "m25-screws",
+      "role": "mech.fastener",
+      "rationale": [
+        "4 per board (5) + 4 lid screws"
+      ]
+    },
+    {
+      "id": "pcb_standoffs",
+      "name": "M2.5 Brass Standoffs",
+      "type": "misc",
+      "category": "mechanical",
+      "partId": "m25-standoffs",
+      "productName": "M2.5\u00d75 mm Brass Standoffs",
+      "quantity": 20,
+      "estimatedCost": 0.06,
+      "dimensions": "4x4x5mm",
+      "material": "Brass",
+      "purchaseUrl": "https://www.aliexpress.com/wholesale?SearchText=M2.5+brass+standoff+5mm",
+      "research": {
+        "specs": [
+          {
+            "label": "width_mm",
+            "value": "4"
+          },
+          {
+            "label": "depth_mm",
+            "value": "4"
+          },
+          {
+            "label": "height_mm",
+            "value": "5"
+          }
+        ],
+        "sourcing": [
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=M2.5+brass+standoff+5mm",
+            "price": "$0.06",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.06
+              }
+            ],
+            "moq": 50,
+            "packSize": 50
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=M2.5+brass+standoff+5mm",
+            "price": "$0.20",
+            "currency": "USD",
+            "priceBreaks": [
+              {
+                "qty": 1,
+                "unitPrice": 0.2
+              }
+            ],
+            "moq": 20,
+            "packSize": 20
+          },
+          {
+            "vendor": "Amazon",
+            "url": "https://www.amazon.com/s?k=M2.5%C3%975+mm+Brass+Standoffs",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "AliExpress",
+            "url": "https://www.aliexpress.com/wholesale?SearchText=M2.5%C3%975+mm+Brass+Standoffs",
+            "currency": "USD",
+            "priceBreaks": []
+          },
+          {
+            "vendor": "eBay",
+            "url": "https://www.ebay.com/sch/i.html?_nkw=M2.5%C3%975+mm+Brass+Standoffs",
+            "currency": "USD",
+            "priceBreaks": []
+          }
+        ],
+        "documentationUrls": []
+      },
+      "subtype": "fastener",
+      "catalogId": "m25-standoffs",
+      "role": "mech.fastener",
+      "rationale": [
+        "lift boards 5 mm off the floor for wiring clearance"
+      ]
+    }
+  ],
+  "electricalConnections": [
+    {
+      "type": "data",
+      "source": "bme280_temp_humidity_pressure",
+      "target": "main_controller",
+      "protocol": "i2c",
+      "sourcePin": "SDA",
+      "targetPin": "GPIO8",
+      "net": "I2C_SDA"
+    },
+    {
+      "type": "data",
+      "source": "bme280_temp_humidity_pressure",
+      "target": "main_controller",
+      "protocol": "i2c",
+      "sourcePin": "SCL",
+      "targetPin": "GPIO9",
+      "net": "I2C_SCL"
+    },
+    {
+      "type": "data",
+      "source": "button_1",
+      "target": "main_controller",
+      "protocol": "gpio",
+      "sourcePin": "SW",
+      "targetPin": "GPIO7"
+    },
+    {
+      "type": "data",
+      "source": "button_2",
+      "target": "main_controller",
+      "protocol": "gpio",
+      "sourcePin": "SW",
+      "targetPin": "GPIO10"
+    },
+    {
+      "type": "data",
+      "source": "button_3",
+      "target": "main_controller",
+      "protocol": "gpio",
+      "sourcePin": "SW",
+      "targetPin": "GPIO20"
+    },
+    {
+      "type": "data",
+      "source": "main_controller",
+      "target": "display",
+      "protocol": "spi",
+      "sourcePin": "GPIO6",
+      "targetPin": "DIN"
+    },
+    {
+      "type": "data",
+      "source": "main_controller",
+      "target": "display",
+      "protocol": "spi",
+      "sourcePin": "GPIO4",
+      "targetPin": "CLK"
+    },
+    {
+      "type": "data",
+      "source": "main_controller",
+      "target": "display",
+      "protocol": "gpio",
+      "sourcePin": "GPIO21",
+      "targetPin": "BUSY"
+    },
+    {
+      "type": "data",
+      "source": "main_controller",
+      "target": "display",
+      "protocol": "spi",
+      "sourcePin": "GPIO0",
+      "targetPin": "CS"
+    },
+    {
+      "type": "data",
+      "source": "main_controller",
+      "target": "display",
+      "protocol": "gpio",
+      "sourcePin": "GPIO1",
+      "targetPin": "DC"
+    },
+    {
+      "type": "data",
+      "source": "main_controller",
+      "target": "display",
+      "protocol": "gpio",
+      "sourcePin": "GPIO3",
+      "targetPin": "RST"
+    },
+    {
+      "type": "power",
+      "source": "battery",
+      "target": "charger",
+      "voltage": "3.7V",
+      "sourcePin": "B+",
+      "targetPin": "B+",
+      "net": "VBAT"
+    },
+    {
+      "type": "power",
+      "source": "charger",
+      "target": "reg_5v",
+      "voltage": "3.7V",
+      "sourcePin": "OUT+",
+      "targetPin": "VIN",
+      "net": "VBAT"
+    },
+    {
+      "type": "power",
+      "source": "reg_5v",
+      "target": "main_controller",
+      "voltage": "5V",
+      "current": "60mA",
+      "sourcePin": "VOUT",
+      "targetPin": "5V",
+      "net": "5V"
+    },
+    {
+      "type": "power",
+      "source": "main_controller",
+      "target": "bme280_temp_humidity_pressure",
+      "voltage": "3.3V",
+      "current": "1mA",
+      "sourcePin": "3V3",
+      "targetPin": "VIN",
+      "net": "3.3V"
+    },
+    {
+      "type": "power",
+      "source": "main_controller",
+      "target": "display",
+      "voltage": "3.3V",
+      "current": "0mA",
+      "sourcePin": "3V3",
+      "targetPin": "VCC",
+      "net": "3.3V"
+    },
+    {
+      "type": "ground",
+      "source": "charger",
+      "target": "main_controller",
+      "sourcePin": "GND",
+      "targetPin": "GND",
+      "net": "GND"
+    },
+    {
+      "type": "ground",
+      "source": "charger",
+      "target": "bme280_temp_humidity_pressure",
+      "sourcePin": "GND",
+      "targetPin": "GND",
+      "net": "GND"
+    },
+    {
+      "type": "ground",
+      "source": "charger",
+      "target": "display",
+      "sourcePin": "GND",
+      "targetPin": "GND",
+      "net": "GND"
+    },
+    {
+      "type": "ground",
+      "source": "charger",
+      "target": "battery",
+      "sourcePin": "GND",
+      "targetPin": "GND",
+      "net": "GND"
+    },
+    {
+      "type": "ground",
+      "source": "charger",
+      "target": "reg_5v",
+      "sourcePin": "GND",
+      "targetPin": "GND",
+      "net": "GND"
+    }
+  ],
+  "mechanicalConnections": [
+    {
+      "source": "enclosure_lid",
+      "target": "enclosure_base",
+      "label": "M2.5 screws",
+      "delta": {
+        "x": 0.0,
+        "y": -13.5,
+        "z": 0.0
+      }
+    },
+    {
+      "source": "main_controller",
+      "target": "enclosure_base",
+      "label": "M2.5 standoffs",
+      "delta": {
+        "x": -4.75,
+        "y": 3.0,
+        "z": -21.0
+      }
+    },
+    {
+      "source": "bme280_temp_humidity_pressure",
+      "target": "enclosure_base",
+      "label": "adhesive pad",
+      "delta": {
+        "x": -33.0,
+        "y": 4.0,
+        "z": 3.0
+      }
+    },
+    {
+      "source": "battery",
+      "target": "enclosure_base",
+      "label": "M2.5 standoffs",
+      "delta": {
+        "x": 27.5,
+        "y": 3.0,
+        "z": 5.0
+      }
+    },
+    {
+      "source": "charger",
+      "target": "enclosure_base",
+      "label": "M2.5 standoffs",
+      "delta": {
+        "x": -7.5,
+        "y": 3.5,
+        "z": 0.5
+      }
+    },
+    {
+      "source": "reg_5v",
+      "target": "enclosure_base",
+      "label": "M2.5 standoffs",
+      "delta": {
+        "x": -12.0,
+        "y": 2.0,
+        "z": 21.5
+      }
+    },
+    {
+      "source": "button_1",
+      "target": "enclosure_lid",
+      "label": "panel mount",
+      "delta": {
+        "x": 38.5,
+        "y": 4.5,
+        "z": -21.0
+      }
+    },
+    {
+      "source": "button_2",
+      "target": "enclosure_lid",
+      "label": "panel mount",
+      "delta": {
+        "x": 22.5,
+        "y": 4.5,
+        "z": -21.0
+      }
+    },
+    {
+      "source": "button_3",
+      "target": "enclosure_lid",
+      "label": "panel mount",
+      "delta": {
+        "x": 6.5,
+        "y": 4.5,
+        "z": -21.0
+      }
+    },
+    {
+      "source": "display",
+      "target": "enclosure_lid",
+      "label": "panel mount",
+      "delta": {
+        "x": 0.0,
+        "y": 3.5,
+        "z": 8.0
+      }
+    }
+  ],
+  "instructionPreamble": {
+    "tools": [
+      "3D printer",
+      "Digital multimeter",
+      "Soldering iron",
+      "Solder wire",
+      "Wire strippers",
+      "Soldering iron with heat-set tip",
+      "USB-C data cable",
+      "Computer with PlatformIO",
+      "Screwdriver set (M2.5 / M3)"
+    ],
+    "assumptions": [
+      "Slicer (PrusaSlicer/Cura/Bambu Studio) configured for the listed materials",
+      "PlatformIO (VS Code extension or CLI) installed",
+      "Lithium battery safety: never short, puncture or charge unattended"
+    ]
+  },
+  "instructionSteps": [
+    {
+      "id": "fabricate",
+      "title": "Fabricate",
+      "subSteps": [
+        {
+          "id": "fabricate_1",
+          "title": "3D print 2 part(s) in PETG",
+          "partIds": [
+            "enclosure_base",
+            "enclosure_lid"
+          ],
+          "details": [
+            "Enclosure Base: 25% infill, 0.2mm layer",
+            "Enclosure Lid: 25% infill, 0.2mm layer"
+          ],
+          "tools": [
+            "3D printer"
+          ]
+        },
+        {
+          "id": "fabricate_2",
+          "title": "Test-fit boards on standoffs before wiring",
+          "partIds": [
+            "main_controller",
+            "display",
+            "battery",
+            "charger",
+            "reg_5v",
+            "pcb_standoffs"
+          ],
+          "tools": [
+            "Digital multimeter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wire",
+      "title": "Wire",
+      "subSteps": [
+        {
+          "id": "wire_1",
+          "title": "Assemble the power path (battery, charger, regulators)",
+          "partIds": [
+            "battery",
+            "charger",
+            "reg_5v"
+          ],
+          "details": [
+            "battery B+ \u2192 charger B+ (3.7V)",
+            "charger OUT+ \u2192 reg_5v VIN (3.7V)"
+          ],
+          "tools": [
+            "Soldering iron",
+            "Solder wire",
+            "Wire strippers"
+          ]
+        },
+        {
+          "id": "wire_2",
+          "title": "Distribute the 5V rail to 1 load(s)",
+          "partIds": [
+            "reg_5v",
+            "main_controller"
+          ],
+          "details": [
+            "reg_5v.VOUT \u2192 main_controller.5V"
+          ],
+          "tools": [
+            "Soldering iron",
+            "Solder wire",
+            "Wire strippers"
+          ]
+        },
+        {
+          "id": "wire_3",
+          "title": "Distribute the 3.3V rail to 2 load(s)",
+          "partIds": [
+            "main_controller",
+            "bme280_temp_humidity_pressure",
+            "display"
+          ],
+          "details": [
+            "main_controller.3V3 \u2192 bme280_temp_humidity_pressure.VIN",
+            "main_controller.3V3 \u2192 display.VCC"
+          ],
+          "tools": [
+            "Soldering iron",
+            "Solder wire",
+            "Wire strippers"
+          ]
+        },
+        {
+          "id": "wire_4",
+          "title": "Solder I2C bus lines to BME280 Temp/Humidity/Pressure",
+          "partIds": [
+            "main_controller",
+            "bme280_temp_humidity_pressure"
+          ],
+          "details": [
+            "SDA = GPIO8",
+            "SCL = GPIO9",
+            "bme280_temp_humidity_pressure.SDA \u2194 GPIO8",
+            "bme280_temp_humidity_pressure.SCL \u2194 GPIO9"
+          ],
+          "tools": [
+            "Soldering iron",
+            "Solder wire",
+            "Wire strippers"
+          ]
+        },
+        {
+          "id": "wire_5",
+          "title": "Solder SPI bus lines to Display",
+          "partIds": [
+            "main_controller",
+            "display"
+          ],
+          "details": [
+            "MOSI = GPIO6",
+            "MISO = GPIO5",
+            "SCK = GPIO4",
+            "display.DIN \u2194 GPIO6",
+            "display.CLK \u2194 GPIO4",
+            "display.BUSY \u2194 GPIO21",
+            "display.CS \u2194 GPIO0",
+            "display.DC \u2194 GPIO1",
+            "display.RST \u2194 GPIO3"
+          ],
+          "tools": [
+            "Soldering iron",
+            "Solder wire",
+            "Wire strippers"
+          ]
+        },
+        {
+          "id": "wire_6",
+          "title": "Wire Button 1 signal pins",
+          "partIds": [
+            "main_controller",
+            "button_1"
+          ],
+          "details": [
+            "button_1.SW \u2192 GPIO7"
+          ],
+          "tools": [
+            "Soldering iron",
+            "Solder wire",
+            "Wire strippers"
+          ]
+        },
+        {
+          "id": "wire_7",
+          "title": "Wire Button 2 signal pins",
+          "partIds": [
+            "main_controller",
+            "button_2"
+          ],
+          "details": [
+            "button_2.SW \u2192 GPIO10"
+          ],
+          "tools": [
+            "Soldering iron",
+            "Solder wire",
+            "Wire strippers"
+          ]
+        },
+        {
+          "id": "wire_8",
+          "title": "Wire Button 3 signal pins",
+          "partIds": [
+            "main_controller",
+            "button_3"
+          ],
+          "details": [
+            "button_3.SW \u2192 GPIO20"
+          ],
+          "tools": [
+            "Soldering iron",
+            "Solder wire",
+            "Wire strippers"
+          ]
+        },
+        {
+          "id": "wire_9",
+          "title": "Verify continuity and rail voltages before inserting the MCU",
+          "partIds": [
+            "reg_5v",
+            "main_controller",
+            "main_controller"
+          ],
+          "details": [
+            "5V: expect 5 V \u00b15 % at reg_5v.VOUT",
+            "3.3V: expect 3.3 V \u00b15 % at main_controller.3V3"
+          ],
+          "tools": [
+            "Soldering iron with heat-set tip",
+            "Soldering iron",
+            "Solder wire",
+            "Wire strippers",
+            "Digital multimeter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bringup",
+      "title": "Bring-up",
+      "subSteps": [
+        {
+          "id": "bringup_1",
+          "title": "Flash firmware to the controller",
+          "partIds": [
+            "main_controller"
+          ],
+          "details": [
+            "pio run -t upload",
+            "pio device monitor -b 115200"
+          ],
+          "tools": [
+            "USB-C data cable",
+            "Computer with PlatformIO"
+          ]
+        },
+        {
+          "id": "bringup_2",
+          "title": "Test BME280 Temp/Humidity/Pressure",
+          "partIds": [
+            "main_controller",
+            "bme280_temp_humidity_pressure"
+          ],
+          "tools": [
+            "Digital multimeter"
+          ]
+        },
+        {
+          "id": "bringup_3",
+          "title": "Test Button 1",
+          "partIds": [
+            "main_controller",
+            "button_1"
+          ],
+          "tools": [
+            "Digital multimeter"
+          ]
+        },
+        {
+          "id": "bringup_4",
+          "title": "Test Button 2",
+          "partIds": [
+            "main_controller",
+            "button_2"
+          ],
+          "tools": [
+            "Digital multimeter"
+          ]
+        },
+        {
+          "id": "bringup_5",
+          "title": "Test Button 3",
+          "partIds": [
+            "main_controller",
+            "button_3"
+          ],
+          "tools": [
+            "Digital multimeter"
+          ]
+        },
+        {
+          "id": "bringup_6",
+          "title": "Test Display",
+          "partIds": [
+            "main_controller",
+            "display"
+          ],
+          "tools": [
+            "Digital multimeter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assemble",
+      "title": "Assemble",
+      "subSteps": [
+        {
+          "id": "assemble_1",
+          "title": "Mount boards and modules inside the enclosure",
+          "partIds": [
+            "main_controller",
+            "bme280_temp_humidity_pressure",
+            "battery",
+            "charger",
+            "reg_5v",
+            "enclosure_base",
+            "pcb_standoffs",
+            "fastener_kit"
+          ],
+          "tools": [
+            "Screwdriver set (M2.5 / M3)"
+          ]
+        },
+        {
+          "id": "assemble_2",
+          "title": "Install panel parts (display/controls) into the lid",
+          "partIds": [
+            "button_1",
+            "button_2",
+            "button_3",
+            "display",
+            "enclosure_lid"
+          ],
+          "tools": [
+            "Screwdriver set (M2.5 / M3)"
+          ]
+        },
+        {
+          "id": "assemble_3",
+          "title": "Close the enclosure and fasten the lid",
+          "partIds": [
+            "enclosure_lid",
+            "enclosure_base",
+            "fastener_kit"
+          ],
+          "tools": [
+            "Screwdriver set (M2.5 / M3)"
+          ]
+        }
+      ]
+    }
+  ],
+  "imagePromptSnapshot": {
+    "tags": [
+      "button",
+      "humidity",
+      "pressure",
+      "temperature",
+      "display",
+      "battery powered",
+      "small enclosure"
+    ],
+    "designHash": "af9e8b6b37b438a8",
+    "description": "portable weather station with a display and 3 buttons",
+    "technicalDescription": "Portable Weather Station built around a ESP32-C3 SuperMini with BME280 Temp/Humidity/Pressure, 12 mm Tactile Push Button, 2.9in e-Paper 296x128 (SPI); battery-powered (\u224810.4 h per charge), housed in a PETG enclosure."
+  },
+  "engineVersion": "0.1.0",
+  "requirements": {
+    "prompt": "portable weather station with a display and 3 buttons",
+    "capabilities": [
+      "input.button",
+      "sense.humidity",
+      "sense.pressure",
+      "sense.temperature",
+      "ui.display"
+    ],
+    "counts": {
+      "input.button": 3
+    },
+    "power_source": "battery",
+    "runtime_hours": 4.0,
+    "budget_usd": null,
+    "size_class": "small",
+    "priorities": [],
+    "materials": [],
+    "tags": [
+      "button",
+      "humidity",
+      "pressure",
+      "temperature",
+      "display",
+      "battery powered",
+      "small enclosure"
+    ],
+    "keywords": [
+      "buttons",
+      "display",
+      "station",
+      "weather"
+    ],
+    "name": "Portable Weather Station",
+    "force": {},
+    "exclude": [],
+    "form_factor": {
+      "widthMm": 100.0,
+      "depthMm": 69.95,
+      "aspect": 1.43,
+      "displayFraction": 0.3134
+    }
+  },
+  "issues": [],
+  "suggestions": [
+    {
+      "kind": "alternative",
+      "nodeId": "main_controller",
+      "catalogId": "rpi-pico-w",
+      "name": "Raspberry Pi Pico W",
+      "score": 0.6361,
+      "priceDeltaUsd": 3.1,
+      "reasons": [
+        "$3.10 more expensive",
+        "$6.00/unit",
+        "very common part (libraries & tutorials)",
+        "14 spare GPIO after allocation"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "main_controller",
+      "catalogId": "arduino-nano-every",
+      "name": "Arduino Nano Every",
+      "score": 0.6011,
+      "priceDeltaUsd": 11.1,
+      "reasons": [
+        "$11.10 more expensive",
+        "$14.00/unit",
+        "8 spare GPIO after allocation"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "main_controller",
+      "catalogId": "esp32-s3-devkitc-1",
+      "name": "ESP32-S3-DevKitC-1 (N8R8)",
+      "score": 0.4936,
+      "priceDeltaUsd": 6.6,
+      "reasons": [
+        "$6.60 more expensive",
+        "$9.50/unit",
+        "very common part (libraries & tutorials)",
+        "13 spare GPIO after allocation"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "button_1",
+      "catalogId": "ky040-encoder",
+      "name": "KY-040 Rotary Encoder + Push",
+      "score": 0.4611,
+      "priceDeltaUsd": 0.3,
+      "reasons": [
+        "$0.30 more expensive",
+        "$0.70/unit",
+        "very common part (libraries & tutorials)"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "button_1",
+      "catalogId": "joystick-module",
+      "name": "Analog Joystick Module (2-axis + button)",
+      "score": 0.4458,
+      "priceDeltaUsd": 0.4,
+      "reasons": [
+        "$0.40 more expensive",
+        "$0.80/unit"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "button_2",
+      "catalogId": "ky040-encoder",
+      "name": "KY-040 Rotary Encoder + Push",
+      "score": 0.4611,
+      "priceDeltaUsd": 0.3,
+      "reasons": [
+        "$0.30 more expensive",
+        "$0.70/unit",
+        "very common part (libraries & tutorials)"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "button_2",
+      "catalogId": "joystick-module",
+      "name": "Analog Joystick Module (2-axis + button)",
+      "score": 0.4458,
+      "priceDeltaUsd": 0.4,
+      "reasons": [
+        "$0.40 more expensive",
+        "$0.80/unit"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "button_3",
+      "catalogId": "ky040-encoder",
+      "name": "KY-040 Rotary Encoder + Push",
+      "score": 0.4611,
+      "priceDeltaUsd": 0.3,
+      "reasons": [
+        "$0.30 more expensive",
+        "$0.70/unit",
+        "very common part (libraries & tutorials)"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "button_3",
+      "catalogId": "joystick-module",
+      "name": "Analog Joystick Module (2-axis + button)",
+      "score": 0.4458,
+      "priceDeltaUsd": 0.4,
+      "reasons": [
+        "$0.40 more expensive",
+        "$0.80/unit"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "display",
+      "catalogId": "lcd1602-i2c",
+      "name": "16x2 Character LCD + I2C Backpack",
+      "score": 0.5722,
+      "priceDeltaUsd": -10.2,
+      "reasons": [
+        "$10.20 cheaper",
+        "$2.80/unit",
+        "lowest price among candidates",
+        "named in the prompt: display",
+        "5 V logic needs a level shifter with this MCU",
+        "very common part (libraries & tutorials)"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "display",
+      "catalogId": "ili9341-28-touch",
+      "name": "2.8in TFT 320x240 Touch (ILI9341 + XPT2046)",
+      "score": 0.5284,
+      "priceDeltaUsd": -4.5,
+      "reasons": [
+        "$4.50 cheaper",
+        "$8.50/unit",
+        "named in the prompt: display",
+        "very common part (libraries & tutorials)"
+      ]
+    },
+    {
+      "kind": "alternative",
+      "nodeId": "display",
+      "catalogId": "waveshare-35-ips-touch",
+      "name": "3.5in IPS 480x320 Touch (ST7796, SPI)",
+      "score": 0.5059,
+      "priceDeltaUsd": 1.0,
+      "reasons": [
+        "$1.00 more expensive",
+        "$14.00/unit",
+        "matches display.large",
+        "named in the prompt: display"
+      ]
+    },
+    {
+      "kind": "addition",
+      "catalogId": "slide-switch",
+      "name": "Power switch",
+      "score": 0.9,
+      "priceDeltaUsd": 0.05,
+      "reasons": [
+        "battery designs need a hard power-off to avoid deep discharge"
+      ]
+    },
+    {
+      "kind": "addition",
+      "catalogId": "ina219",
+      "name": "Battery/current monitor",
+      "score": 0.5,
+      "priceDeltaUsd": 1.8,
+      "reasons": [
+        "show battery percentage / detect stalls"
+      ]
+    }
+  ],
+  "bom": {
+    "lines": [
+      {
+        "node_id": "main_controller",
+        "name": "Main Controller",
+        "product_name": "ESP32-C3 SuperMini",
+        "category": "electrical",
+        "type": "mcu",
+        "qty": 1,
+        "unit_usd": 2.9,
+        "subtotal_usd": 2.9,
+        "estimate": false,
+        "vendor": "AliExpress",
+        "url": "https://www.aliexpress.com/wholesale?SearchText=ESP32-C3+SuperMini",
+        "order_qty": 1
+      },
+      {
+        "node_id": "bme280_temp_humidity_pressure",
+        "name": "BME280 Temp/Humidity/Pressure",
+        "product_name": "BME280 Temp/Humidity/Pressure",
+        "category": "electrical",
+        "type": "sensor",
+        "qty": 1,
+        "unit_usd": 3.2,
+        "subtotal_usd": 3.2,
+        "estimate": false,
+        "vendor": "AliExpress",
+        "url": "https://www.aliexpress.com/wholesale?SearchText=BME280+breakout",
+        "order_qty": 1
+      },
+      {
+        "node_id": "button_1",
+        "name": "Button 1",
+        "product_name": "12 mm Tactile Push Button",
+        "category": "electrical",
+        "type": "module",
+        "qty": 1,
+        "unit_usd": 0.4,
+        "subtotal_usd": 0.4,
+        "estimate": false,
+        "vendor": "Amazon",
+        "url": "https://www.amazon.com/s?k=12mm+tactile+button",
+        "order_qty": 1
+      },
+      {
+        "node_id": "button_2",
+        "name": "Button 2",
+        "product_name": "12 mm Tactile Push Button",
+        "category": "electrical",
+        "type": "module",
+        "qty": 1,
+        "unit_usd": 0.4,
+        "subtotal_usd": 0.4,
+        "estimate": false,
+        "vendor": "Amazon",
+        "url": "https://www.amazon.com/s?k=12mm+tactile+button",
+        "order_qty": 1
+      },
+      {
+        "node_id": "button_3",
+        "name": "Button 3",
+        "product_name": "12 mm Tactile Push Button",
+        "category": "electrical",
+        "type": "module",
+        "qty": 1,
+        "unit_usd": 0.4,
+        "subtotal_usd": 0.4,
+        "estimate": false,
+        "vendor": "Amazon",
+        "url": "https://www.amazon.com/s?k=12mm+tactile+button",
+        "order_qty": 1
+      },
+      {
+        "node_id": "display",
+        "name": "Display",
+        "product_name": "2.9in e-Paper 296x128 (SPI)",
+        "category": "electrical",
+        "type": "display",
+        "qty": 1,
+        "unit_usd": 13.0,
+        "subtotal_usd": 13.0,
+        "estimate": false,
+        "vendor": "AliExpress",
+        "url": "https://www.aliexpress.com/wholesale?SearchText=2.9+inch+e-paper+module+SPI",
+        "order_qty": 1
+      },
+      {
+        "node_id": "battery",
+        "name": "Battery",
+        "product_name": "LiPo 3.7 V 1000 mAh (503450, PCM)",
+        "category": "electrical",
+        "type": "power",
+        "qty": 1,
+        "unit_usd": 3.5,
+        "subtotal_usd": 3.5,
+        "estimate": false,
+        "vendor": "AliExpress",
+        "url": "https://www.aliexpress.com/wholesale?SearchText=LiPo+3.7V+1000mAh+503450",
+        "order_qty": 1
+      },
+      {
+        "node_id": "charger",
+        "name": "USB-C Charger + Protection",
+        "product_name": "TP4056 USB-C Li-ion Charger + Protection",
+        "category": "electrical",
+        "type": "power",
+        "qty": 1,
+        "unit_usd": 0.6,
+        "subtotal_usd": 0.6,
+        "estimate": false,
+        "vendor": "AliExpress",
+        "url": "https://www.aliexpress.com/wholesale?SearchText=TP4056+USB-C+charger+protection",
+        "order_qty": 1
+      },
+      {
+        "node_id": "reg_5v",
+        "name": "5V Boost",
+        "product_name": "MT3608 Boost Converter (set 5 V)",
+        "category": "electrical",
+        "type": "power",
+        "qty": 1,
+        "unit_usd": 0.5,
+        "subtotal_usd": 0.5,
+        "estimate": false,
+        "vendor": "AliExpress",
+        "url": "https://www.aliexpress.com/wholesale?SearchText=MT3608+boost+module",
+        "order_qty": 1
+      },
+      {
+        "node_id": "enclosure_base",
+        "name": "Enclosure Base",
+        "product_name": null,
+        "category": "mechanical",
+        "type": "enclosure",
+        "qty": 1,
+        "unit_usd": 1.33,
+        "subtotal_usd": 1.33,
+        "estimate": true,
+        "vendor": null,
+        "url": null,
+        "order_qty": 1
+      },
+      {
+        "node_id": "enclosure_lid",
+        "name": "Enclosure Lid",
+        "product_name": null,
+        "category": "mechanical",
+        "type": "3d_printed",
+        "qty": 1,
+        "unit_usd": 0.66,
+        "subtotal_usd": 0.66,
+        "estimate": true,
+        "vendor": null,
+        "url": null,
+        "order_qty": 1
+      },
+      {
+        "node_id": "fastener_kit",
+        "name": "M2.5 Mounting Screws",
+        "product_name": "M2.5\u00d76 mm Pan-Head Screws",
+        "category": "mechanical",
+        "type": "misc",
+        "qty": 24,
+        "unit_usd": 0.03,
+        "subtotal_usd": 3.0,
+        "estimate": false,
+        "vendor": "AliExpress",
+        "url": "https://www.aliexpress.com/wholesale?SearchText=M2.5x6+screws",
+        "order_qty": 100
+      },
+      {
+        "node_id": "pcb_standoffs",
+        "name": "M2.5 Brass Standoffs",
+        "product_name": "M2.5\u00d75 mm Brass Standoffs",
+        "category": "mechanical",
+        "type": "misc",
+        "qty": 20,
+        "unit_usd": 0.06,
+        "subtotal_usd": 3.0,
+        "estimate": false,
+        "vendor": "AliExpress",
+        "url": "https://www.aliexpress.com/wholesale?SearchText=M2.5+brass+standoff+5mm",
+        "order_qty": 50
+      }
+    ],
+    "rollup": [
+      {
+        "category": "electrical",
+        "parts": 9,
+        "cost": 24.9,
+        "types": [
+          {
+            "type": "mcu",
+            "parts": 1,
+            "cost": 2.9,
+            "lines": [
+              "main_controller"
+            ]
+          },
+          {
+            "type": "sensor",
+            "parts": 1,
+            "cost": 3.2,
+            "lines": [
+              "bme280_temp_humidity_pressure"
+            ]
+          },
+          {
+            "type": "module",
+            "parts": 3,
+            "cost": 1.2,
+            "lines": [
+              "button_1",
+              "button_2",
+              "button_3"
+            ]
+          },
+          {
+            "type": "display",
+            "parts": 1,
+            "cost": 13.0,
+            "lines": [
+              "display"
+            ]
+          },
+          {
+            "type": "power",
+            "parts": 3,
+            "cost": 4.6,
+            "lines": [
+              "battery",
+              "charger",
+              "reg_5v"
+            ]
+          }
+        ]
+      },
+      {
+        "category": "mechanical",
+        "parts": 4,
+        "cost": 3.91,
+        "types": [
+          {
+            "type": "enclosure",
+            "parts": 1,
+            "cost": 1.33,
+            "lines": [
+              "enclosure_base"
+            ]
+          },
+          {
+            "type": "3d_printed",
+            "parts": 1,
+            "cost": 0.66,
+            "lines": [
+              "enclosure_lid"
+            ]
+          },
+          {
+            "type": "misc",
+            "parts": 2,
+            "cost": 1.92,
+            "lines": [
+              "fastener_kit",
+              "pcb_standoffs"
+            ]
+          }
+        ]
+      }
+    ],
+    "partsTotalUsd": 32.89,
+    "shippingUsd": 2.0,
+    "totalUsd": 34.89,
+    "estimateTotalUsd": 28.81
+  },
+  "wiringLayout": {
+    "nodes": {
+      "main_controller": {
+        "x": 1020.0,
+        "y": 258.0,
+        "w": 200.0,
+        "h": 132.0,
+        "layer": 3
+      },
+      "bme280_temp_humidity_pressure": {
+        "x": 1360.0,
+        "y": 86.0,
+        "w": 200.0,
+        "h": 132.0,
+        "layer": 4
+      },
+      "button_1": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 200.0,
+        "h": 132.0,
+        "layer": 0
+      },
+      "button_2": {
+        "x": 0.0,
+        "y": 172.0,
+        "w": 200.0,
+        "h": 132.0,
+        "layer": 0
+      },
+      "button_3": {
+        "x": 0.0,
+        "y": 344.0,
+        "w": 200.0,
+        "h": 132.0,
+        "layer": 0
+      },
+      "display": {
+        "x": 1360.0,
+        "y": 258.0,
+        "w": 200.0,
+        "h": 132.0,
+        "layer": 4
+      },
+      "battery": {
+        "x": 0.0,
+        "y": 536.0,
+        "w": 200.0,
+        "h": 132.0,
+        "layer": 0
+      },
+      "charger": {
+        "x": 340.0,
+        "y": 536.0,
+        "w": 200.0,
+        "h": 132.0,
+        "layer": 1
+      },
+      "reg_5v": {
+        "x": 680.0,
+        "y": 536.0,
+        "w": 200.0,
+        "h": 132.0,
+        "layer": 2
+      }
+    },
+    "edges": [
+      {
+        "type": "data",
+        "source": "bme280_temp_humidity_pressure",
+        "target": "main_controller",
+        "count": 2,
+        "label": "i2c \u00d72",
+        "points": [
+          [
+            1360.0,
+            125.6
+          ],
+          [
+            1290.0,
+            125.6
+          ],
+          [
+            1290.0,
+            297.6
+          ],
+          [
+            1220.0,
+            297.6
+          ]
+        ],
+        "reversed": true
+      },
+      {
+        "type": "data",
+        "source": "button_1",
+        "target": "main_controller",
+        "count": 1,
+        "label": "gpio",
+        "points": [
+          [
+            200.0,
+            39.6
+          ],
+          [
+            320.0,
+            39.6
+          ],
+          [
+            320.0,
+            284.0
+          ],
+          [
+            440.0,
+            284.0
+          ],
+          [
+            610.0,
+            284.0
+          ],
+          [
+            610.0,
+            284.0
+          ],
+          [
+            780.0,
+            284.0
+          ],
+          [
+            900.0,
+            284.0
+          ],
+          [
+            900.0,
+            313.4
+          ],
+          [
+            1020.0,
+            313.4
+          ]
+        ],
+        "reversed": false
+      },
+      {
+        "type": "data",
+        "source": "button_2",
+        "target": "main_controller",
+        "count": 1,
+        "label": "gpio",
+        "points": [
+          [
+            200.0,
+            211.6
+          ],
+          [
+            320.0,
+            211.6
+          ],
+          [
+            320.0,
+            324.0
+          ],
+          [
+            440.0,
+            324.0
+          ],
+          [
+            610.0,
+            324.0
+          ],
+          [
+            610.0,
+            324.0
+          ],
+          [
+            780.0,
+            324.0
+          ],
+          [
+            900.0,
+            324.0
+          ],
+          [
+            900.0,
+            329.3
+          ],
+          [
+            1020.0,
+            329.3
+          ]
+        ],
+        "reversed": false
+      },
+      {
+        "type": "data",
+        "source": "button_3",
+        "target": "main_controller",
+        "count": 1,
+        "label": "gpio",
+        "points": [
+          [
+            200.0,
+            383.6
+          ],
+          [
+            320.0,
+            383.6
+          ],
+          [
+            320.0,
+            410.0
+          ],
+          [
+            440.0,
+            410.0
+          ],
+          [
+            610.0,
+            410.0
+          ],
+          [
+            610.0,
+            410.0
+          ],
+          [
+            780.0,
+            410.0
+          ],
+          [
+            900.0,
+            410.0
+          ],
+          [
+            900.0,
+            345.1
+          ],
+          [
+            1020.0,
+            345.1
+          ]
+        ],
+        "reversed": false
+      },
+      {
+        "type": "data",
+        "source": "main_controller",
+        "target": "display",
+        "count": 6,
+        "label": "spi \u00d73, gpio \u00d73",
+        "points": [
+          [
+            1220.0,
+            297.6
+          ],
+          [
+            1290.0,
+            297.6
+          ],
+          [
+            1290.0,
+            297.6
+          ],
+          [
+            1360.0,
+            297.6
+          ]
+        ],
+        "reversed": false
+      },
+      {
+        "type": "power",
+        "source": "battery",
+        "target": "charger",
+        "label": "3.7V",
+        "count": 1,
+        "points": [
+          [
+            200.0,
+            575.6
+          ],
+          [
+            270.0,
+            575.6
+          ],
+          [
+            270.0,
+            575.6
+          ],
+          [
+            340.0,
+            575.6
+          ]
+        ],
+        "reversed": false
+      },
+      {
+        "type": "power",
+        "source": "charger",
+        "target": "reg_5v",
+        "label": "3.7V",
+        "count": 1,
+        "points": [
+          [
+            540.0,
+            575.6
+          ],
+          [
+            610.0,
+            575.6
+          ],
+          [
+            610.0,
+            575.6
+          ],
+          [
+            680.0,
+            575.6
+          ]
+        ],
+        "reversed": false
+      },
+      {
+        "type": "power",
+        "source": "reg_5v",
+        "target": "main_controller",
+        "label": "5V",
+        "count": 1,
+        "points": [
+          [
+            880.0,
+            575.6
+          ],
+          [
+            950.0,
+            575.6
+          ],
+          [
+            950.0,
+            361.0
+          ],
+          [
+            1020.0,
+            361.0
+          ]
+        ],
+        "reversed": false
+      },
+      {
+        "type": "power",
+        "source": "main_controller",
+        "target": "bme280_temp_humidity_pressure",
+        "label": "3.3V",
+        "count": 1,
+        "points": [
+          [
+            1220.0,
+            313.4
+          ],
+          [
+            1290.0,
+            313.4
+          ],
+          [
+            1290.0,
+            125.6
+          ],
+          [
+            1360.0,
+            125.6
+          ]
+        ],
+        "reversed": false
+      },
+      {
+        "type": "power",
+        "source": "main_controller",
+        "target": "display",
+        "label": "3.3V",
+        "count": 1,
+        "points": [
+          [
+            1220.0,
+            329.3
+          ],
+          [
+            1290.0,
+            329.3
+          ],
+          [
+            1290.0,
+            313.4
+          ],
+          [
+            1360.0,
+            313.4
+          ]
+        ],
+        "reversed": false
+      }
+    ],
+    "width": 1560.0,
+    "height": 668.0,
+    "crossings": 0,
+    "nodeMeta": {
+      "main_controller": {
+        "name": "Main Controller",
+        "product": "ESP32-C3 SuperMini",
+        "type": "mcu",
+        "pins": [
+          "GPIO0",
+          "GPIO1",
+          "GPIO3",
+          "GPIO4",
+          "GPIO6",
+          "GPIO7",
+          "GPIO8",
+          "GPIO9",
+          "GPIO10",
+          "GPIO20",
+          "GPIO21",
+          "3V3",
+          "5V",
+          "GND"
+        ]
+      },
+      "bme280_temp_humidity_pressure": {
+        "name": "BME280 Temp/Humidity/Pressure",
+        "product": "BME280 Temp/Humidity/Pressure",
+        "type": "sensor",
+        "pins": [
+          "SDA",
+          "SCL",
+          "VIN",
+          "GND"
+        ]
+      },
+      "button_1": {
+        "name": "Button 1",
+        "product": "12 mm Tactile Push Button",
+        "type": "module",
+        "pins": [
+          "SW",
+          "GND"
+        ]
+      },
+      "button_2": {
+        "name": "Button 2",
+        "product": "12 mm Tactile Push Button",
+        "type": "module",
+        "pins": [
+          "SW",
+          "GND"
+        ]
+      },
+      "button_3": {
+        "name": "Button 3",
+        "product": "12 mm Tactile Push Button",
+        "type": "module",
+        "pins": [
+          "SW",
+          "GND"
+        ]
+      },
+      "display": {
+        "name": "Display",
+        "product": "2.9in e-Paper 296x128 (SPI)",
+        "type": "display",
+        "pins": [
+          "DIN",
+          "CLK",
+          "CS",
+          "DC",
+          "RST",
+          "BUSY",
+          "VCC",
+          "GND"
+        ]
+      },
+      "battery": {
+        "name": "Battery",
+        "product": "LiPo 3.7 V 1000 mAh (503450, PCM)",
+        "type": "power",
+        "pins": [
+          "B+",
+          "B-",
+          "GND"
+        ]
+      },
+      "charger": {
+        "name": "USB-C Charger + Protection",
+        "product": "TP4056 USB-C Li-ion Charger + Protection",
+        "type": "power",
+        "pins": [
+          "IN+",
+          "OUT+",
+          "GND"
+        ]
+      },
+      "reg_5v": {
+        "name": "5V Boost",
+        "product": "MT3608 Boost Converter (set 5 V)",
+        "type": "power",
+        "pins": [
+          "VIN",
+          "VOUT",
+          "GND"
+        ]
+      }
+    }
+  },
+  "mechLayout": {
+    "parts": {
+      "enclosure_base": {
+        "pos": [
+          0.0,
+          12.5,
+          0.0
+        ],
+        "size": [
+          110.0,
+          25.0,
+          75.0
+        ],
+        "parent": null,
+        "shape": "box",
+        "type": "enclosure",
+        "color": "#a58be0"
+      },
+      "battery": {
+        "pos": [
+          -27.5,
+          9.5,
+          -5.0
+        ],
+        "size": [
+          34.0,
+          5.0,
+          50.0
+        ],
+        "parent": "enclosure_base",
+        "shape": "box",
+        "type": "power",
+        "color": "#f5c94e"
+      },
+      "bme280_temp_humidity_pressure": {
+        "pos": [
+          33.0,
+          8.5,
+          -3.0
+        ],
+        "size": [
+          15.0,
+          3.0,
+          12.0
+        ],
+        "parent": "enclosure_base",
+        "shape": "box",
+        "type": "sensor",
+        "color": "#418dbf"
+      },
+      "charger": {
+        "pos": [
+          7.5,
+          9.0,
+          -0.5
+        ],
+        "size": [
+          28.0,
+          4.0,
+          17.0
+        ],
+        "parent": "enclosure_base",
+        "shape": "box",
+        "type": "power",
+        "color": "#f5c94e"
+      },
+      "enclosure_lid": {
+        "pos": [
+          0.0,
+          26.0,
+          0.0
+        ],
+        "size": [
+          110.0,
+          2.0,
+          75.0
+        ],
+        "parent": "enclosure_base",
+        "shape": "box",
+        "type": "3d_printed",
+        "color": "#bfd36a"
+      },
+      "main_controller": {
+        "pos": [
+          4.75,
+          9.5,
+          21.0
+        ],
+        "size": [
+          22.5,
+          5.0,
+          18.0
+        ],
+        "parent": "enclosure_base",
+        "shape": "box",
+        "type": "mcu",
+        "color": "#06abab"
+      },
+      "reg_5v": {
+        "pos": [
+          12.0,
+          10.5,
+          -21.5
+        ],
+        "size": [
+          37.0,
+          7.0,
+          17.0
+        ],
+        "parent": "enclosure_base",
+        "shape": "box",
+        "type": "power",
+        "color": "#f5c94e"
+      },
+      "button_1": {
+        "pos": [
+          -38.5,
+          21.5,
+          21.0
+        ],
+        "size": [
+          12.0,
+          7.0,
+          12.0
+        ],
+        "parent": "enclosure_lid",
+        "shape": "box",
+        "type": "module",
+        "color": "#7253ad"
+      },
+      "button_2": {
+        "pos": [
+          -22.5,
+          21.5,
+          21.0
+        ],
+        "size": [
+          12.0,
+          7.0,
+          12.0
+        ],
+        "parent": "enclosure_lid",
+        "shape": "box",
+        "type": "module",
+        "color": "#7253ad"
+      },
+      "button_3": {
+        "pos": [
+          -6.5,
+          21.5,
+          21.0
+        ],
+        "size": [
+          12.0,
+          7.0,
+          12.0
+        ],
+        "parent": "enclosure_lid",
+        "shape": "box",
+        "type": "module",
+        "color": "#7253ad"
+      },
+      "display": {
+        "pos": [
+          0.0,
+          22.5,
+          -8.0
+        ],
+        "size": [
+          89.0,
+          5.0,
+          38.0
+        ],
+        "parent": "enclosure_lid",
+        "shape": "box",
+        "type": "display",
+        "color": "#db87a1"
+      }
+    },
+    "bbox": {
+      "min": [
+        -55.0,
+        0.0,
+        -37.5
+      ],
+      "max": [
+        55.0,
+        27.0,
+        37.5
+      ],
+      "size": [
+        110.0,
+        27.0,
+        75.0
+      ]
+    },
+    "tree": [
+      {
+        "id": "enclosure_base",
+        "name": "Enclosure Base",
+        "depth": 0,
+        "type": "enclosure"
+      },
+      {
+        "id": "battery",
+        "name": "Battery",
+        "depth": 1,
+        "type": "power"
+      },
+      {
+        "id": "bme280_temp_humidity_pressure",
+        "name": "BME280 Temp/Humidity/Pressure",
+        "depth": 1,
+        "type": "sensor"
+      },
+      {
+        "id": "charger",
+        "name": "USB-C Charger + Protection",
+        "depth": 1,
+        "type": "power"
+      },
+      {
+        "id": "enclosure_lid",
+        "name": "Enclosure Lid",
+        "depth": 1,
+        "type": "3d_printed"
+      },
+      {
+        "id": "button_1",
+        "name": "Button 1",
+        "depth": 2,
+        "type": "module"
+      },
+      {
+        "id": "button_2",
+        "name": "Button 2",
+        "depth": 2,
+        "type": "module"
+      },
+      {
+        "id": "button_3",
+        "name": "Button 3",
+        "depth": 2,
+        "type": "module"
+      },
+      {
+        "id": "display",
+        "name": "Display",
+        "depth": 2,
+        "type": "display"
+      },
+      {
+        "id": "main_controller",
+        "name": "Main Controller",
+        "depth": 1,
+        "type": "mcu"
+      },
+      {
+        "id": "reg_5v",
+        "name": "5V Boost",
+        "depth": 1,
+        "type": "power"
+      }
+    ],
+    "collisions": [],
+    "cadEligible": 11,
+    "enclosure": {
+      "outer": [
+        110.0,
+        25.0,
+        75.0
+      ],
+      "inner": [
+        89.0,
+        60.0
+      ],
+      "wall": 2.0,
+      "material": "PETG"
+    }
+  },
+  "firmware": {
+    "platformio.ini": "[env:esp32-c3-devkitm-1]\nplatform = espressif32\nboard = esp32-c3-devkitm-1\nframework = arduino\nmonitor_speed = 115200\nlib_deps =\n    adafruit/Adafruit BME280 Library@^2.2.4\n    zinggjm/GxEPD2@^1.5.8\n",
+    "include/pins.h": "#pragma once\n// Generated from the design's pin allocation \u2014 edit the design, not this file.\n\n#define I2C0_SDA    8\n#define I2C0_SCL    9\n#define SPI0_MOSI   6\n#define SPI0_MISO   5\n#define SPI0_SCK    4\n#define BME280_TEMP_HUMIDITY_PRESSURE_SCL        9\n#define BME280_TEMP_HUMIDITY_PRESSURE_SDA        8\n#define BUTTON_1_SW         7\n#define BUTTON_2_SW         10\n#define BUTTON_3_SW         20\n#define DISPLAY_BUSY       21\n#define DISPLAY_CLK        4\n#define DISPLAY_CS         0\n#define DISPLAY_DC         1\n#define DISPLAY_DIN        6\n#define DISPLAY_RST        3\n",
+    "src/main.cpp": "#include <Arduino.h>\n#include \"pins.h\"\n#include <Wire.h>\n#include <SPI.h>\n#include <Adafruit_BME280.h>\n#include <GxEPD2_BW.h>\n\nAdafruit_BME280 bme;\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin(I2C0_SDA, I2C0_SCL);\n  SPI.begin(SPI0_SCK, SPI0_MISO, SPI0_MOSI);\n  bme.begin(0x76);\n  pinMode(BUTTON_1_SW, INPUT_PULLUP);\n  pinMode(BUTTON_2_SW, INPUT_PULLUP);\n  pinMode(BUTTON_3_SW, INPUT_PULLUP);\n  pinMode(DISPLAY_BUSY, OUTPUT);\n  pinMode(DISPLAY_CS, OUTPUT);\n  pinMode(DISPLAY_DC, OUTPUT);\n  pinMode(DISPLAY_RST, OUTPUT);\n  Serial.println(\"boot ok\");\n}\n\nvoid loop() {\n  Serial.printf(\"T=%.1fC RH=%.0f%%\\n\", bme.readTemperature(), bme.readHumidity());\n  delay(1000);\n}\n",
+    "README.md": "# Firmware\n\nBoard: ESP32-C3 SuperMini (`esp32-c3-devkitm-1`)\n\n```bash\npio run -t upload && pio device monitor\n```\n"
+  },
+  "power": {
+    "source": "battery",
+    "rails": [
+      {
+        "name": "5V",
+        "voltage": 5.0,
+        "source": "reg_5v",
+        "capacityMa": 1000.0,
+        "typMa": 60.7,
+        "peakMa": 359.0,
+        "avgMa": 60.71,
+        "parent": "VBAT",
+        "loads": [
+          "main_controller"
+        ]
+      },
+      {
+        "name": "3.3V",
+        "voltage": 3.3,
+        "source": "main_controller",
+        "capacityMa": 300.0,
+        "typMa": 0.7,
+        "peakMa": 9.0,
+        "avgMa": 0.71,
+        "parent": null,
+        "loads": [
+          "bme280_temp_humidity_pressure",
+          "display"
+        ]
+      }
+    ],
+    "avgPowerW": 0.304,
+    "peakPowerW": 1.795,
+    "battery": {
+      "id": "battery",
+      "wh": 3.7,
+      "chemistry": "li-po",
+      "cells": 1
+    },
+    "runtimeHours": 10.4
+  }
+}

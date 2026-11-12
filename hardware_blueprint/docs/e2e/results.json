@@ -1,0 +1,297 @@
+[
+ {
+  "name": "studio: stats render",
+  "ok": true,
+  "detail": "0projects created1accounts0published"
+ },
+ {
+  "name": "studio: need-an-idea suggests projects",
+  "ok": true,
+  "detail": "4-Axis Robotic Arm"
+ },
+ {
+  "name": "studio: drawing analysed (screen + 3 buttons found)",
+  "ok": true,
+  "detail": "display window ≈ 53.9 × 38.7 mm (30% of the front)3 push buttons"
+ },
+ {
+  "name": "studio: drawing -> 3D STL download",
+  "ok": true,
+  "detail": "STL 79.63 × 6 × 56.04 mm · 0 hole(s) · watertight true"
+ },
+ {
+  "name": "studio: picture-only run asks what the device should do",
+  "ok": true,
+  "detail": "A portable weather station with a display and 3 buttons"
+ },
+ {
+  "name": "studio: generation phases reach done",
+  "ok": true,
+  "detail": "7/7"
+ },
+ {
+  "name": "project: picture became parts (display + buttons)",
+  "ok": true,
+  "detail": "Portable Weather Station"
+ },
+ {
+  "name": "project: big drawn screen -> no 0.96in OLED",
+  "ok": true,
+  "detail": "2.9in e-paper"
+ },
+ {
+  "name": "project: part detail panel opens",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "project: parts table has a total row",
+  "ok": true,
+  "detail": "~$28.81"
+ },
+ {
+  "name": "project: build quantity pricing",
+  "ok": true,
+  "detail": "10 build(s): parts $280.90 + shipping $2.00 = $282.90 · $28.29 per build"
+ },
+ {
+  "name": "project: hero image on Info",
+  "ok": true,
+  "detail": "/p/052504f099f5"
+ },
+ {
+  "name": "project: cost tree collapses category -> type -> part",
+  "ok": true,
+  "detail": "0 -> 14 hidden rows"
+ },
+ {
+  "name": "project: notes save",
+  "ok": true,
+  "detail": "Saved · version 1"
+ },
+ {
+  "name": "project: new hero image applied",
+  "ok": true,
+  "detail": "/api/projects/052504f099f5/image.svg?v=1"
+ },
+ {
+  "name": "project: wiring enriched mode adds rail nodes",
+  "ok": true,
+  "detail": "9 -> 13"
+ },
+ {
+  "name": "project: POWER toggle hides power edges",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "project: wiring zoom",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "project: electrical-parts sidebar focuses a part",
+  "ok": true,
+  "detail": "9 parts listed"
+ },
+ {
+  "name": "project: 3D dimension axes X/Y/Z",
+  "ok": true,
+  "detail": "X 110mm, Y 27mm, Z 75mm"
+ },
+ {
+  "name": "project: per-part eye toggle hides a part",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "project: per-part CAD generation",
+  "ok": true,
+  "detail": "CAD 0/11 · 40 credits -> CAD 1/11 · 39 credits"
+ },
+ {
+  "name": "project: CAD file menu offers STEP",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "project: mech explode toggles",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "project: instructions progress counter",
+  "ok": true,
+  "detail": "0/20 done -> 1/20 done"
+ },
+ {
+  "name": "project: part cards in instructions",
+  "ok": true,
+  "detail": "56 cards"
+ },
+ {
+  "name": "project: instruction \"View details\" shows a tip",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "project: history lists versions",
+  "ok": true,
+  "detail": "2 versions"
+ },
+ {
+  "name": "project: restore creates a new version",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "project: export CAD (STEP zip)",
+  "ok": true,
+  "detail": "052504f099f5-cad-step.zip"
+ },
+ {
+  "name": "project: export build guide",
+  "ok": true,
+  "detail": "052504f099f5-guide.md"
+ },
+ {
+  "name": "project: chat suggested prompts",
+  "ok": true,
+  "detail": "Replace the display with a 16x2 Character LCD + I2C BackpackReplace the display with a 2.8in TFT 320x240 Touch (ILI9341 "
+ },
+ {
+  "name": "project: approved chat edit applied (buzzer)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "share: publish to community",
+  "ok": true,
+  "detail": "/s/8LIuJmcktSzJUeMTGHXLx8Yd2kqsVfsdaQ5wDExODls"
+ },
+ {
+  "name": "share: invite by email gives a link",
+  "ok": true,
+  "detail": "/invitations#token=cg4O18CnJh7"
+ },
+ {
+  "name": "share: create share link",
+  "ok": true,
+  "detail": "New link: http://127.0.0.1:8765/join#tok"
+ },
+ {
+  "name": "invitations page: second user accepts",
+  "ok": true,
+  "detail": "You joined the project as viewer.Open the project"
+ },
+ {
+  "name": "project as viewer: no Share button, notes read-only",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "share: members list shows the new collaborator",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "share: change member role",
+  "ok": true,
+  "detail": "friend -> editor"
+ },
+ {
+  "name": "share page: star with count",
+  "ok": true,
+  "detail": "★ Starred 1"
+ },
+ {
+  "name": "share page: copy creates my project",
+  "ok": true,
+  "detail": "/p/5ffcd65b7eb2"
+ },
+ {
+  "name": "community page: lists the published project with author",
+  "ok": true,
+  "detail": "Portable Weather Station"
+ },
+ {
+  "name": "community page: search",
+  "ok": true,
+  "detail": "Load more hidden when nothing matches"
+ },
+ {
+  "name": "community page: projects-created counter counts picture runs",
+  "ok": true,
+  "detail": "1projects created2accounts1published"
+ },
+ {
+  "name": "my projects page: projects + starred",
+  "ok": true,
+  "detail": "2 projects"
+ },
+ {
+  "name": "pricing: buy CAD credits (simulated)",
+  "ok": true,
+  "detail": "Balance: 39 credits -> Balance: 59 credits"
+ },
+ {
+  "name": "pricing: switch plan (simulated)",
+  "ok": true,
+  "detail": "Free"
+ },
+ {
+  "name": "account: username saved and shown in header",
+  "ok": true,
+  "detail": "bright_sparrow23"
+ },
+ {
+  "name": "account: email preferences saved",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "faq page",
+  "ok": true,
+  "detail": "7 questions"
+ },
+ {
+  "name": "about page: contact form",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "resume: unfinished picture run reopens at the question",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "375px: no horizontal overflow on /",
+  "ok": true,
+  "detail": "false"
+ },
+ {
+  "name": "375px: no horizontal overflow on /p/052504f099f5",
+  "ok": true,
+  "detail": "false"
+ },
+ {
+  "name": "375px: no horizontal overflow on /community",
+  "ok": true,
+  "detail": "false"
+ },
+ {
+  "name": "375px: no horizontal overflow on /pricing",
+  "ok": true,
+  "detail": "false"
+ },
+ {
+  "name": "375px: no horizontal overflow on /account",
+  "ok": true,
+  "detail": "false"
+ },
+ {
+  "name": "no JS errors / alerts",
+  "ok": true,
+  "detail": ""
+ }
+]

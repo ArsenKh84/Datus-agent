@@ -1,0 +1,63 @@
+[project]
+name = "hwbp"
+version = "0.1.0"
+description = "Hardware blueprint decision engine: prompt -> components -> wiring -> mechanical layout/meshes -> BOM -> instructions"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+dependencies = [
+    "pydantic>=2.7,<3",
+]
+
+[project.optional-dependencies]
+api = [
+    "fastapi>=0.110,<1",
+    "uvicorn>=0.27",
+    "websockets>=12",
+    "pillow>=10",
+]
+vision = [
+    "anthropic>=2.8",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "httpx>=0.27",
+    "fastapi>=0.110,<1",
+    "ruff>=0.15",
+    "steputils>=0.1",
+    "uvicorn>=0.27",
+    "websockets>=12",
+    "pillow>=10",
+    "anthropic>=2.8",
+]
+
+[project.scripts]
+hwbp = "hwbp.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hwbp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "B", "I", "C90", "T20"]
+ignore = ["E203", "E501", "C901", "B905"]  # B905: pairwise zip(x, x[1:]) truncation is intentional
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Body", "fastapi.Query"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["hwbp"]

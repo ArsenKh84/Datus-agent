@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hardware Blueprint Studio</title>
+<style>
+:root{--bg:#f6f6f4;--surface:#ffffff;--text:#151515;--muted:#6b6d6c;--line:#e2e3e1;--accent:#2f6fed;--ok:#2f8f4e;--warn:#b7791f;--err:#c53030}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff}}
+:root[data-theme="dark"]{--bg:#131313;--surface:#1c1c1c;--text:#f0f0ef;--muted:#9d9f9e;--line:#2c2d2c;--accent:#6fa0ff}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,sans-serif}
+header.site{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5}
+.brand{font-weight:700;color:var(--text);text-decoration:none;white-space:nowrap}
+nav.links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0}nav.links a{color:var(--muted);text-decoration:none;font:600 12px/1 inherit;letter-spacing:.06em;text-transform:uppercase;padding:9px 10px;border-radius:8px;white-space:nowrap}
+nav.links a:hover{color:var(--text)}nav.links a[aria-current="page"]{color:var(--text);background:var(--bg)}
+h1{font-size:26px;margin:16px 0 4px;letter-spacing:.01em}h2{font-size:15px;margin:0 0 10px}main{max-width:1100px;margin:0 auto;padding:16px}
+.lead{color:var(--muted);margin:0 0 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.btn{border:1px solid var(--line);background:none;color:var(--text);padding:8px 14px;border-radius:8px;font:600 13px/1 inherit;cursor:pointer;min-height:36px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn:disabled{opacity:.5;cursor:not-allowed}.btn[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+.icon{width:36px;height:36px;padding:0;justify-content:center;border-color:transparent}.icon svg{width:18px;height:18px}.icon[aria-pressed="true"]{background:var(--bg);color:var(--text);border-color:var(--line)}
+textarea,input[type=text],input[type=number],select{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+.promptbox{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}.promptbox textarea{border:none;border-radius:0;min-height:90px;resize:vertical;padding:14px}
+.promptbox .bar{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:6px 8px}
+label{font-size:12px;color:var(--muted);display:block;margin:6px 0 4px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.muted{color:var(--muted)}.small{font-size:12px}.ok{color:var(--ok)}.err{color:var(--err)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.stats{display:flex;gap:16px;flex-wrap:wrap}.stats b{font-size:18px;display:block}
+.phases{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.phase{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.phase.done{border-color:var(--ok);color:var(--ok)}.phase.now{border-color:var(--accent);color:var(--accent)}
+#draw{width:100%;max-width:480px;aspect-ratio:4/3;background:#fff;border:1px solid var(--line);border-radius:8px;touch-action:none;display:block}
+.attach{display:grid;grid-template-columns:160px minmax(0,1fr);gap:12px;align-items:start;margin-top:12px}.thumb{width:160px;max-height:130px;object-fit:contain;border-radius:8px;border:1px solid var(--line);background:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px}.chip.found{border-color:var(--ok);color:var(--ok)}
+.choices{display:grid;gap:8px;margin:8px 0}.choice{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--text);font-size:14px;margin:0}.choice input{margin-top:3px}
+.proj{display:flex;flex-direction:column;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.proj img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--bg);display:block;border-bottom:1px solid var(--line)}.proj .meta{padding:10px 12px}.proj b{display:block;text-transform:uppercase;letter-spacing:.03em;font-size:13px}
+.pills{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:11px;color:var(--muted)}.pill{border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.avatar{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:-1px;margin-right:4px}
+a{color:var(--accent)}button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:13px;z-index:20;max-width:calc(100vw - 32px)}
+@media (max-width:640px){header.site{flex-wrap:wrap}nav.links{order:3;width:100%}.attach{grid-template-columns:1fr}.thumb{width:100%;max-height:200px}}
+</style>
+</head>
+<body>
+<header class="site"><a class="brand" href="/">Hardware Blueprint</a>
+<nav class="links" aria-label="Site"><a href="/" aria-current="page">Studio</a><a href="/community">Community</a><a href="/projects">My projects</a><a href="/pricing">Pricing</a><a href="/faq">FAQ</a><a href="/about">About</a></nav>
+<a class="btn" href="/account" id="acct">Account</a></header>
+<main>
+<h1>Turn an idea into a buildable device</h1>
+<p class="lead">Describe it, upload a picture or draw it. You get the parts list with prices, the wiring, a 3D layout with printable parts and a step-by-step build guide.</p>
+<div class="card">
+  <div class="promptbox">
+    <label for="prompt" class="small" style="position:absolute;left:-9999px">What should the device do?</label>
+    <textarea id="prompt" placeholder="Describe a device…"></textarea>
+    <div class="bar"><div class="row" style="gap:2px">
+      <button class="btn icon" id="ideabtn" aria-pressed="false" aria-label="Need an idea?" title="Need an idea?"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7.5 15h5M8 17.5h4M10 2.5a5.5 5.5 0 00-3.3 9.9c.5.4.8 1 .8 1.6h5c0-.6.3-1.2.8-1.6A5.5 5.5 0 0010 2.5z"/></svg></button>
+      <label class="btn icon" for="file" style="margin:0;color:var(--text)" aria-label="Upload image" title="Upload image"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><circle cx="7.5" cy="8" r="1.5"/><path d="M3 15l4.5-4.5 3 3 2.5-2.5 4 4"/></svg></label><input type="file" id="file" accept="image/png,image/jpeg,image/webp" hidden />
+      <button class="btn icon" id="drawbtn" aria-pressed="false" aria-label="Draw" title="Draw"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 3.5l3 3-9 9H4.5v-3z"/><path d="M11.5 5.5l3 3"/></svg></button>
+    </div><button class="btn primary" id="go">Generate blueprint</button></div>
+  </div>
+  <div id="attachwrap" hidden><div class="attach"><img id="imgprev" class="thumb" alt="Attached picture"/><div><b class="small">Picture</b> <span class="small muted" id="imginfo"></span><p class="small" id="imgsummary" style="margin:4px 0"></p><div class="chips" id="imgchips"></div><div class="small muted" id="imgunsure"></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="imgclear">Remove</button><label class="small" for="meshmode" style="margin:0">3D</label><select id="meshmode" style="width:auto"><option value="extrude">Extrude</option><option value="relief">Relief</option><option value="revolve">Revolve</option></select><button class="btn" id="tomesh">Make STL</button></div><p class="small muted" id="meshout"></p></div></div></div>
+  <div id="drawwrap" hidden style="margin-top:12px"><canvas id="draw" width="480" height="360" aria-label="Sketch pad"></canvas>
+    <div class="row" style="margin-top:6px"><button class="btn" id="drawclear">Clear</button><button class="btn" id="drawuse">Use drawing</button><span class="small muted">Draw the outline. A rectangle inside becomes a screen; small circles become buttons.</span></div></div>
+  <div id="ideawrap" hidden style="margin-top:12px">
+    <div class="grid"><div><label for="interests">Interests (comma separated)</label><input type="text" id="interests" value="home, iot"/></div>
+    <div><label for="budget">Budget (USD)</label><input type="number" id="budget" value="40" min="5"/></div>
+    <div><label for="skill">Skill</label><select id="skill"><option value="1">Beginner</option><option value="2" selected>Intermediate</option><option value="3">Advanced</option></select></div></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="ideago">Suggest projects</button></div><div id="ideas" class="grid" style="margin-top:8px"></div></div>
+  <div id="progress" hidden><div class="phases" id="phases"></div><p class="small muted" id="pmsg"></p><div id="questions"></div><p id="result"></p></div>
+</div>
+<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Community projects</h2><a class="btn" href="/community">See more</a></div>
+  <div class="stats" id="stats" style="margin:12px 0"></div><div id="community" class="grid"></div></div>
+<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">My recent projects</h2><a class="btn" href="/projects">All projects</a></div><div id="mine" class="small muted" style="margin-top:10px">Loading…</div></div>
+</main>
+<div id="toast" role="status" hidden></div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function api(path,body,method){const r=await fetch(path,{method:method||(body?'POST':'GET'),headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const ct=r.headers.get('content-type')||'';const d=ct.includes('json')?await r.json():await r.text();if(!r.ok){const e=new Error((d.detail&&(d.detail.message||d.detail.error))||d.detail||('HTTP '+r.status));e.status=r.status;throw e;}return d;}
+function toast(m){const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,3800);}
+const ago=ts=>{const s=Math.max(0,Date.now()/1000-ts);if(s<3600)return Math.max(1,Math.round(s/60))+'m ago';if(s<86400)return Math.round(s/3600)+'h ago';if(s<172800)return 'Yesterday';return Math.round(s/86400)+'d ago';};
+const PHASES=['planning','questions','electrical','mechanical','revealing','guide','done'];
+let imageId=null,imageData=null;
+// rotating example prompts
+const EX=['a portable radar with a touchscreen, battery powered','a plant monitor that waters itself and reports over wifi','a robot car that avoids obstacles','a desk lamp with an LED strip and a dimmer knob','a weather station with an e-paper display, solar powered'];
+let ei=0;const rot=()=>{if(!$('prompt').value)$('prompt').placeholder='Ask for '+EX[ei++%EX.length]+'…';};rot();setInterval(rot,3500);
+api('/api/profile/me').then(p=>{$('acct').innerHTML=`<span class="avatar" style="background:${esc(p.profileColor||'#888')}"></span>${esc(p.username||'Account')}`;}).catch(()=>{});
+async function stats(){try{const s=await api('/api/stats');$('stats').innerHTML=`<span><b>${s.projectsCreated}</b><span class="small muted">projects created</span></span><span><b>${s.accountsCreated}</b><span class="small muted">accounts</span></span><span><b>${s.publishedProjects}</b><span class="small muted">published</span></span>`;}catch(e){}}
+// ---- picture: upload / draw → analysis preview
+async function attach(dataUrl,label){try{const r=await api('/api/generation-input-images',{image:dataUrl});imageId=r.id;imageData=dataUrl;$('imgprev').src=dataUrl;$('imginfo').textContent=label;$('attachwrap').hidden=false;$('meshout').textContent='';
+  $('imgsummary').textContent='Reading the picture…';$('imgchips').innerHTML='';$('imgunsure').textContent='';
+  try{const a=await api(`/api/input-images/${r.id}/analysis`,{});const d=a.detected;$('imgsummary').textContent=d.summary;
+    $('imgchips').innerHTML=d.components.map(c=>`<span class="chip found">${esc(c)}</span>`).join('');
+    $('imgunsure').innerHTML=(d.uncertainties.length?'<b>Not sure:</b> '+d.uncertainties.map(esc).join(' · '):'')+(!$('prompt').value.trim()?`<div style="margin-top:4px">${a.visionModel?'The vision model will describe what the device does.':'You will be asked what the device should do.'}</div>`:'');}
+  catch(e){$('imgsummary').textContent='The picture was attached; its outline could not be read ('+e.message+').';}}
+  catch(e){toast('Could not attach the picture: '+e.message);}}
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>attach(fr.result,f.name);fr.readAsDataURL(f);e.target.value='';};
+$('imgclear').onclick=()=>{imageId=null;imageData=null;$('attachwrap').hidden=true;};
+$('tomesh').onclick=async()=>{try{const d=imageData.split(',')[1];const mode=$('meshmode').value;const r=await api('/api/image-to-mesh',{image:d,mode,widthMm:80,heightMm:mode==='revolve'?80:6,format:'stl'});
+  const a=document.createElement('a');a.href='data:model/stl;base64,'+r.data;a.download=`part-${mode}.stl`;a.click();$('meshout').textContent=`STL ${r.report.sizeMm.join(' × ')} mm · ${r.report.holes} hole(s) · watertight ${r.report.watertight}`;}catch(e){$('meshout').textContent='Could not build a mesh from this picture: '+e.message;}};
+const cv=$('draw'),ctx=cv.getContext('2d');const clear=()=>{ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);};clear();
+let pen=null;const pos=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
+cv.onpointerdown=e=>{pen=pos(e);cv.setPointerCapture(e.pointerId);};cv.onpointerup=()=>pen=null;
+cv.onpointermove=e=>{if(!pen)return;const p=pos(e);ctx.strokeStyle='#111';ctx.lineWidth=8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(...pen);ctx.lineTo(...p);ctx.stroke();pen=p;};
+const toggle=(btn,wrap)=>{const on=$(wrap).hidden;$(wrap).hidden=!on;$(btn).setAttribute('aria-pressed',on);};
+$('drawbtn').onclick=()=>toggle('drawbtn','drawwrap');$('drawclear').onclick=clear;$('drawuse').onclick=()=>attach(cv.toDataURL('image/png'),'drawing');
+$('ideabtn').onclick=()=>toggle('ideabtn','ideawrap');
+$('ideago').onclick=async()=>{try{const r=await api('/api/ideas',{answers:{interests:$('interests').value.split(',').map(s=>s.trim()).filter(Boolean),budget:+$('budget').value,skill:+$('skill').value}});
+  $('ideas').innerHTML=r.projects.map(p=>`<div class="card" style="margin:0"><b>${esc(p.name)}</b><p class="small">${esc(p.description)}</p><button class="btn" data-idea="${esc(p.description)}">Use this idea</button></div>`).join('');
+  $('ideas').querySelectorAll('[data-idea]').forEach(b=>b.onclick=()=>{$('prompt').value=b.dataset.idea;$('prompt').focus();});}catch(e){toast('Could not suggest ideas: '+e.message);}};
+// ---- generation (long-poll), picture-only function question, refine questions
+function showPhase(ph){$('phases').innerHTML=PHASES.map(p=>`<span class="phase ${PHASES.indexOf(p)<PHASES.indexOf(ph)||ph==='done'?'done':p===ph?'now':''}">${p}</span>`).join('');}
+async function follow(run){while(['queued','running'].includes(run.status)){run=await api(`/api/generation-runs/${run.id}?waitMs=10000&sinceRevision=${run.revision}`);showPhase(run.phase);$('pmsg').textContent=(run.messages||[]).slice(-1)[0]||'';}
+  showPhase(run.phase);$('pmsg').textContent=(run.messages||[]).slice(-1)[0]||'';
+  if(run.status==='waiting_for_input')askFunction(run);
+  else if(run.status==='completed'){$('questions').innerHTML='';$('result').innerHTML=`<a class="btn primary" href="/p/${esc(run.projectId)}">Open project →</a>`;renderQuestions(run);loadMine();stats();}
+  else $('result').innerHTML=`<span class="err">Generation ${esc(run.status)}${run.failure?': '+esc(run.failure):''}.</span> <button class="btn" id="retry">Try again</button>`;
+  if($('retry'))$('retry').onclick=async()=>{try{$('result').innerHTML='';await follow(await api(`/api/generation-runs/${run.id}/retry`,{revision:run.revision}));}catch(e){toast('Could not retry: '+e.message);}};
+  return run;}
+function askFunction(run){const q=(run.questionRounds[0]||{}).questions.find(x=>x.id==='device_function');if(!q)return;
+  $('result').innerHTML='';$('questions').innerHTML=`<p style="margin:12px 0 4px"><b>${esc(q.question)}</b></p>
+  <div class="choices" role="radiogroup">${q.options.map((o,i)=>`<label class="choice"><input type="radio" name="fn" value="${esc(o)}" ${i===0?'checked':''}/> ${esc(o)}</label>`).join('')}
+  <label class="choice"><input type="radio" name="fn" value="__other"/> <span style="flex:1">Something else<input type="text" id="fnother" placeholder="Describe what it should do" aria-label="Describe what it should do" style="margin-top:6px"/></span></label></div>
+  <button class="btn primary" id="fngo">Continue</button>`;
+  $('fnother').onfocus=()=>{document.querySelector('input[name=fn][value=__other]').checked=true;};
+  $('fngo').onclick=async()=>{const sel=document.querySelector('input[name=fn]:checked').value;const answer=sel==='__other'?$('fnother').value.trim():sel;if(!answer){$('fnother').focus();return;}
+    $('fngo').disabled=true;try{$('questions').innerHTML='';await follow(await api(`/api/generation-runs/${run.id}/questions`,{revision:run.revision,qa:[{id:'device_function',answer}]}));}catch(e){toast('Could not continue: '+e.message);$('fngo').disabled=false;}};}
+$('go').onclick=async()=>{const prompt=$('prompt').value.trim();if(!prompt&&!imageId){$('prompt').focus();toast('Describe the device, or attach a picture first.');return;}
+  $('go').disabled=true;$('progress').hidden=false;$('result').innerHTML='';$('questions').innerHTML='';showPhase('planning');
+  try{await follow(await api('/api/generation-runs',{prompt,idempotencyKey:crypto.randomUUID?crypto.randomUUID():String(Date.now()),inputImages:imageId?[imageId]:[]}));}
+  catch(e){$('result').innerHTML=`<span class="err">${e.status===402?'You have used this week\'s design credits. <a href="/pricing">See plans</a>.':'Could not generate: '+esc(e.message)}</span>`;}
+  $('go').disabled=false;};
+function renderQuestions(run){const qs=((run.questionRounds[0]||{}).questions||[]).filter(q=>q.id!=='device_function');if(!qs.length)return;
+  $('questions').innerHTML='<p class="small muted">Refine (defaults were applied):</p><div class="grid">'+qs.map(q=>`<div><label for="q-${esc(q.id)}">${esc(q.question)}</label><select id="q-${esc(q.id)}" data-q="${esc(q.id)}">${q.options.map(o=>`<option ${o===q.default?'selected':''}>${esc(o)}</option>`).join('')}</select></div>`).join('')+'</div><div class="row" style="margin-top:8px"><button class="btn" id="qgo">Regenerate with answers</button></div>';
+  $('qgo').onclick=async()=>{const qa=[...document.querySelectorAll('[data-q]')].map(s=>({id:s.dataset.q,answer:s.value}));$('qgo').disabled=true;
+    try{await follow(await api(`/api/generation-runs/${run.id}/questions`,{revision:run.revision,qa}));}catch(e){toast('Could not regenerate: '+e.message);$('qgo').disabled=false;}};}
+// ---- resume a run (?run=id from My projects)
+const resume=new URLSearchParams(location.search).get('run');
+if(resume)api(`/api/generation-runs/${encodeURIComponent(resume)}`).then(r=>{$('progress').hidden=false;$('prompt').value='';return follow(r);}).catch(e=>toast('Could not open that generation: '+e.message));
+// ---- my projects & community preview
+async function loadMine(){try{const r=await api('/api/projects');$('mine').innerHTML=r.projects.length?r.projects.slice(0,5).map(p=>`<div><a href="/p/${esc(p.id)}">${esc(p.name)}</a> <span class="muted">v${p.version} · ${esc(p.role)}${p.updatedAt?' · '+ago(p.updatedAt):''}</span></div>`).join(''):'No projects yet. Describe a device above.';}catch(e){$('mine').textContent='Could not load your projects.';}}
+async function loadCommunity(){try{const r=await api('/api/community?sort=trending&limit=8');
+  $('community').innerHTML=r.projects.length?r.projects.map(p=>`<a class="proj" href="/s/${esc(p.token)}">${p.thumbnailUrl?`<img alt="" loading="lazy" src="${esc(p.thumbnailUrl)}"/>`:''}<div class="meta"><b>${esc(p.projectName)}</b><div class="pills"><span class="pill">${p.nodeCount} parts</span><span class="pill">★ ${p.starCount}</span><span>${ago(p.publishedAt)}</span></div>${p.author?`<div class="small muted" style="margin-top:6px"><span class="avatar" style="background:${esc(p.author.profileColor||'#888')}"></span>${esc(p.author.username)}</div>`:''}</div></a>`).join(''):'<p class="small muted" style="grid-column:1/-1">No published projects yet. Publish one from its project page with Share.</p>';}catch(e){$('community').innerHTML='<p class="small err">Could not load the community feed.</p>';}}
+stats();loadMine();loadCommunity();
+})();
+</script>
+</body>
+</html>
