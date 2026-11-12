@@ -65,6 +65,8 @@ async function drawDevice(page) {
     await page.waitForSelector('#fngo', { timeout: 30000 });
     const opts = await page.$$eval('input[name=fn]', i => i.map(x => x.value));
     log('studio: picture-only run asks what the device should do', opts.length === 5 && opts[0].includes('3 buttons'), opts[1]);
+    await page.click('#drawbtn');  // close the sketch pad so the question is in view
+    await page.$eval('#progress', e => e.scrollIntoView({ block: 'center' }));
     await shot(page, '2_studio_question.png');
     await page.check(`input[name=fn][value="${opts[1]}"]`);
     await page.click('#fngo');

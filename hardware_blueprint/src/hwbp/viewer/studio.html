@@ -119,8 +119,8 @@ async function follow(run){while(['queued','running'].includes(run.status)){run=
   else $('result').innerHTML=`<span class="err">Generation ${esc(run.status)}${run.failure?': '+esc(run.failure):''}.</span> <button class="btn" id="retry">Try again</button>`;
   if($('retry'))$('retry').onclick=async()=>{try{$('result').innerHTML='';await follow(await api(`/api/generation-runs/${run.id}/retry`,{revision:run.revision}));}catch(e){toast('Could not retry: '+e.message);}};
   return run;}
-function askFunction(run){const q=(run.questionRounds[0]||{}).questions.find(x=>x.id==='device_function');if(!q)return;const a=run.imageAnalysis||{};
-  $('result').innerHTML='';$('questions').innerHTML=`<p style="margin:12px 0 4px"><b>${esc(q.question)}</b></p>${a.summary?`<p class="small muted" style="margin:0">${esc(a.summary)}</p>`:''}
+function askFunction(run){const q=(run.questionRounds[0]||{}).questions.find(x=>x.id==='device_function');if(!q)return;
+  $('result').innerHTML='';$('questions').innerHTML=`<p style="margin:12px 0 4px"><b>${esc(q.question)}</b></p>
   <div class="choices" role="radiogroup">${q.options.map((o,i)=>`<label class="choice"><input type="radio" name="fn" value="${esc(o)}" ${i===0?'checked':''}/> ${esc(o)}</label>`).join('')}
   <label class="choice"><input type="radio" name="fn" value="__other"/> <span style="flex:1">Something else<input type="text" id="fnother" placeholder="Describe what it should do" aria-label="Describe what it should do" style="margin-top:6px"/></span></label></div>
   <button class="btn primary" id="fngo">Continue</button>`;

@@ -57,7 +57,7 @@
  {
   "name": "project: hero image on Info",
   "ok": true,
-  "detail": "/p/6e0b0fafdc5e"
+  "detail": "/p/052504f099f5"
  },
  {
   "name": "project: cost tree collapses category -> type -> part",
@@ -72,7 +72,7 @@
  {
   "name": "project: new hero image applied",
   "ok": true,
-  "detail": "/api/projects/6e0b0fafdc5e/image.svg?v=1"
+  "detail": "/api/projects/052504f099f5/image.svg?v=1"
  },
  {
   "name": "project: wiring enriched mode adds rail nodes",
@@ -147,12 +147,12 @@
  {
   "name": "project: export CAD (STEP zip)",
   "ok": true,
-  "detail": "6e0b0fafdc5e-cad-step.zip"
+  "detail": "052504f099f5-cad-step.zip"
  },
  {
   "name": "project: export build guide",
   "ok": true,
-  "detail": "6e0b0fafdc5e-guide.md"
+  "detail": "052504f099f5-guide.md"
  },
  {
   "name": "project: chat suggested prompts",
@@ -167,12 +167,12 @@
  {
   "name": "share: publish to community",
   "ok": true,
-  "detail": "/s/W3dspVHqdkg9Un_gmNi_WprN3CB3QwPtPb5c7FNdui4"
+  "detail": "/s/8LIuJmcktSzJUeMTGHXLx8Yd2kqsVfsdaQ5wDExODls"
  },
  {
   "name": "share: invite by email gives a link",
   "ok": true,
-  "detail": "/invitations#token=OVYStTGmO4s"
+  "detail": "/invitations#token=cg4O18CnJh7"
  },
  {
   "name": "share: create share link",
@@ -207,7 +207,7 @@
  {
   "name": "share page: copy creates my project",
   "ok": true,
-  "detail": "/p/4503d77d50bb"
+  "detail": "/p/5ffcd65b7eb2"
  },
  {
   "name": "community page: lists the published project with author",
@@ -270,7 +270,7 @@
   "detail": "false"
  },
  {
-  "name": "375px: no horizontal overflow on /p/6e0b0fafdc5e",
+  "name": "375px: no horizontal overflow on /p/052504f099f5",
   "ok": true,
   "detail": "false"
  },
